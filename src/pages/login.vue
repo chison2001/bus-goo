@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
+import authV2MaskDark from '@images/pages/misc-mask-dark.png'
+import authV2MaskLight from '@images/pages/misc-mask-light.png'
+import { themeConfig } from '@themeConfig'
+
+definePage({
+  meta: {
+    layout: 'blank',
+  },
+})
+
+const form = ref({
+  email: '',
+  password: '',
+  remember: false,
+})
+
+const isPasswordVisible = ref(false)
+
+const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
+</script>
+
+<template>
+  <VRow
+    no-gutters
+    class="auth-wrapper bg-surface"
+  >
+    <VCol
+      md="8"
+      class="d-none d-md-flex"
+    >
+      <div class="position-relative bg-background rounded-lg w-100 ma-8 me-0">
+        <div class="d-flex align-center justify-center w-100 h-100">
+          <VImg
+            max-width="1300"
+            src="https://res.cloudinary.com/dwbnrx0mg/image/upload/v1705895258/doan/a_01-1920x1080-1a7d0f916f14ccb238fe9fd0862894ee_npwmhe.jpg"
+            class="auth-illustration mt-16 mb-2"
+          />
+        </div>
+
+        <VImg
+          class="auth-footer-mask"
+          :src="authThemeMask"
+        />
+      </div>
+    </VCol>
+
+    <VCol
+      cols="12"
+      md="4"
+      class="auth-card-v2 d-flex align-center justify-center"
+    >
+      <VCard
+        flat
+        :max-width="500"
+        class="mt-12 mt-sm-0 pa-4"
+      >
+        <VCardText>
+          <img src="https://res.cloudinary.com/dwbnrx0mg/image/upload/c_thumb,w_200,g_face/v1705993978/doan/3752bcc334a1ba2613c6d389318f503b_xau5p1.jpg">
+          <h4 class="text-h4 mb-1">
+            Chào mừng đến với <span class="text-capitalize">{{ themeConfig.app.title }}</span>! 👋🏻
+          </h4>
+          <p class="mb-0">
+            Đăng nhập để sử dụng web
+          </p>
+        </VCardText>
+        <VCardText>
+          <VForm @submit.prevent="() => { }">
+            <VRow>
+              <!-- email -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.email"
+                  autofocus
+                  label="Email"
+                  type="email"
+                  placeholder="sonle@email.com"
+                />
+              </VCol>
+
+              <!-- password -->
+              <VCol cols="12">
+                <AppTextField
+                  v-model="form.password"
+                  label="Password"
+                  placeholder="············"
+                  :type="isPasswordVisible ? 'text' : 'password'"
+                  :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
+                  @click:append-inner="isPasswordVisible = !isPasswordVisible"
+                />
+
+                <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4">
+                  <VCheckbox
+                    v-model="form.remember"
+                    label="Ghi nhớ đăng nhập"
+                  />
+                  <a
+                    class="text-primary ms-2 mb-1"
+                    href="#"
+                  >
+                    Quên mật khẩu
+                  </a>
+                </div>
+
+                <VBtn
+                  block
+                  type="submit"
+                >
+                  Đăng nhập
+                </VBtn>
+              </VCol>
+
+              <!-- create account -->
+              <VCol
+                cols="12"
+                class="text-center text-base"
+              >
+                <span>Bạn chưa có tài khoản?</span>
+
+                <RouterLink
+                  class="text-primary ms-2"
+                  :to="{ name: 'register' }"
+                >
+                  Tạo tài khoản mới
+                </RouterLink>
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardText>
+      </VCard>
+    </VCol>
+  </VRow>
+</template>
+
+<style lang="scss">
+@use "@core/scss/template/pages/page-auth.scss";
+</style>
