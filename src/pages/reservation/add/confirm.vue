@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { VForm } from 'vuetify/components/VForm'
 import { database } from '@/plugins/fake-api/handlers/apps/ticket/db'
 
 const tickets = database
@@ -6,6 +7,12 @@ const now = new Date()
 const date = now.toLocaleDateString('es-CL')
 
 const selectedSeats = ref<string[]>([])
+const refForm = ref<VForm>()
+const fullName = ref('')
+const email = ref('')
+const phoneNumber = ref('')
+const addreess = ref('')
+const searchValue = ref('')
 
 const getColor = (isSelected: any, disabled: any) => {
   // Determine the appropriate color based on the state
@@ -47,7 +54,7 @@ function handleOnClickSeat(chair: any) {
           <VRow>
             <VCol
               cols="12"
-              lg="12"
+              md="12"
               class="justify-center d-flex flex-row"
             >
               <div class="d-flex flex-row mx-5">
@@ -276,6 +283,100 @@ function handleOnClickSeat(chair: any) {
         <VCardText class="text-h3 font-weight-bold">
           Thông tin khách hàng
         </VCardText>
+        <VCardItem>
+          <VForm
+            ref="refForm"
+            @submit.prevent="() => {}"
+          >
+            <VRow class="justify-center">
+              <VCol
+                cols="12"
+                md="5"
+                class="d-flex flex-row"
+              >
+                <AppTextField
+                  v-model="searchValue"
+                  placeholder="Tìm khách hàng"
+                  :rules="[phoneNumberValidator]"
+                />
+                <VBtn class="ms-2">
+                  Tìm kiếm
+                </VBtn>
+              </VCol>
+            </VRow>
+            <VRow class="justify-center">
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <AppTextField
+                  v-model="fullName"
+                  label="Tên khách hàng"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <AppTextField
+                  v-model="email"
+                  label="Email"
+                  :rules="[requiredValidator, emailValidator]"
+                />
+              </VCol>
+            </VRow>
+            <VRow class="justify-center">
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <AppTextField
+                  v-model="phoneNumber"
+                  label="Số điện thoại"
+                  :rules="[requiredValidator, phoneNumberValidator]"
+                />
+              </VCol>
+              <VCol
+                cols="12"
+                md="3"
+              >
+                <AppTextField
+                  v-model="addreess"
+                  label="Địa chỉ"
+                  :rules="[requiredValidator]"
+                />
+              </VCol>
+            </VRow>
+            <VRow class="justify-center">
+              <VCol
+                cols="12"
+                md="2"
+                class="text-end"
+              >
+                <VBtn
+                  block
+                  size="large"
+                >
+                  Huỷ
+                </VBtn>
+              </VCol>
+              <VCol
+                cols="12"
+                md="2"
+              >
+                <VBtn
+                  type="submit"
+                  size="large"
+                  block
+                  @click="refForm?.validate()"
+                >
+                  Đặt
+                </VBtn>
+              </VCol>
+            </VRow>
+          </VForm>
+        </VCardItem>
       </VCard>
     </VCol>
   </VRow>
