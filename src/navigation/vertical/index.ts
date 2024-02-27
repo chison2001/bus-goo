@@ -11,7 +11,7 @@ export default [
   },
   {
     title: 'Khuyến mãi',
-    to: { name: 'second-page' },
+    to: { name: 'promotion-list' },
     icon: { icon: 'tabler-heart' },
   },
   {

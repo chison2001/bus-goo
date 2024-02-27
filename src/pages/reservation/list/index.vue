@@ -199,9 +199,9 @@ const deleteInvoice = async (id: number) => {
           <!-- 👉 Create invoice -->
           <VBtn
             prepend-icon="tabler-plus"
-            :to="{ name: 'dashboard' }"
+            :to="{ name: 'reservation-add' }"
           >
-            Tạo hoá đơn
+            Đặt vé
           </VBtn>
         </div>
       </VCardText>
