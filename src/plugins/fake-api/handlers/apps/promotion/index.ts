@@ -111,7 +111,7 @@ export const handlerAppsPromotions = [
     return res(
       ctx.status(200),
       ctx.json({
-        users: paginateArray(filteredPromotion, itemsPerPageLocal, pageLocal),
+        promotions: paginateArray(filteredPromotion, itemsPerPageLocal, pageLocal),
         totalPages,
         totalPromotions,
         page: pageLocal > Math.ceil(totalPromotions / itemsPerPageLocal) ? 1 : page,
@@ -139,12 +139,6 @@ export const handlerAppsPromotions = [
         ctx.json(
           {
             ...promo,
-            ...{
-              taskDone: 1230,
-              projectDone: 568,
-              taxId: 'Tax-8894',
-              language: 'English',
-            },
           },
         ),
       )

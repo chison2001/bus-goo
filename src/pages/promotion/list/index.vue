@@ -5,10 +5,12 @@ import { paginationMeta } from '@api-utils/paginationMeta'
 type invoiceStatus = 'Downloaded' | 'Draft' | 'Paid' | 'Sent' | 'Partial Payment' | 'Past Due' | null
 
 const searchQuery = ref('')
-const orderDateRange = ref('')
+const toDateRange = ref('')
 const startDateRange = ref('')
 const selectedStatus = ref<invoiceStatus>(null)
 const selectedRows = ref<string[]>([])
+const selectedStartDate = ref()
+const selectedToDate = ref()
 
 // Data table options
 const itemsPerPage = ref(10)
@@ -25,17 +27,16 @@ const updateOptions = (options: any) => {
 
 // 👉 headers
 const headers = [
-  { title: 'Mã', key: 'id' },
-  { title: 'Người đặt', key: 'client.fullName' },
-  { title: 'Ngày đặt', key: 'orderDate' },
-  { title: 'Ngày khởi hành', key: 'startDate' },
-  { title: 'Tổng tiền', key: 'total' },
+  { title: 'ID', key: 'id' },
+  { title: 'Code', key: 'code' },
+  { title: 'Ngày bắt đầu', key: 'startDate' },
+  { title: 'Ngày kết thúc', key: 'toDate' },
   { title: 'Trạng thái', key: 'status' },
   { title: 'Hành động', key: 'actions', sortable: false },
 ]
 
-const selectedOrderDateRange = computed(() => {
-  const [start, end] = orderDateRange.value ? orderDateRange.value.split('to') : ''
+const selectedToDateRange = computed(() => {
+  const [start, end] = toDateRange.value ? toDateRange.value.split('to') : ''
 
   return {
     start,
@@ -53,11 +54,13 @@ const selectedStartDateRange = computed(() => {
 })
 
 // 👉 Fetch Invoices
-const { data: invoiceData, execute: fetchInvoices } = await useApi<any>(createUrl('/apps/invoice', {
+const { data: promotionData, execute: fetchInvoices } = await useApi<any>(createUrl('apps/promotions', {
   query: {
     q: searchQuery,
     status: selectedStatus,
-    selectedOrderDateRange,
+    startDate: selectedStartDate,
+    toDate: selectedToDate,
+    selectedToDateRange,
     selectedStartDateRange,
     itemsPerPage,
     page,
@@ -66,8 +69,8 @@ const { data: invoiceData, execute: fetchInvoices } = await useApi<any>(createUr
   },
 }))
 
-const invoices = computed(() => invoiceData.value.invoices)
-const totalInvoices = computed(() => invoiceData.value.totalInvoices)
+const promotions = computed(() => promotionData.value.promotions)
+const totalPromotions = computed(() => promotionData.value.totalPromotions)
 
 const resolveUserStatusVariant = (stat: string) => {
   const statLowerCase = stat.toLowerCase()
@@ -100,7 +103,7 @@ const deleteInvoice = async (id: number) => {
 </script>
 
 <template>
-  <section v-if="invoices">
+  <section v-if="promotions">
     <!-- 👉 Invoice Filters  -->
     <VCard
       title="Filters"
@@ -129,8 +132,8 @@ const deleteInvoice = async (id: number) => {
             md="4"
           >
             <AppDateTimePicker
-              v-model="orderDateRange"
-              label="Ngày đặt"
+              v-model="startDateRange"
+              label="Ngày bắt đầu"
               clear-icon="tabler-x"
               clearable
               :config="{ mode: 'range' }"
@@ -144,8 +147,8 @@ const deleteInvoice = async (id: number) => {
             md="4"
           >
             <AppDateTimePicker
-              v-model="startDateRange"
-              label="Ngày khởi hành"
+              v-model="toDateRange"
+              label="Ngày kết thúc"
               clear-icon="tabler-x"
               clearable
               :config="{ mode: 'range' }"
@@ -212,9 +215,9 @@ const deleteInvoice = async (id: number) => {
         v-model="selectedRows"
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
-        :items-length="totalInvoices"
+        :items-length="totalPromotions"
         :headers="headers"
-        :items="invoices"
+        :items="promotions"
         class="text-no-wrap"
         @click:row="(item) => console.log(item)"
         @update:options="updateOptions"
@@ -275,13 +278,13 @@ const deleteInvoice = async (id: number) => {
           <VDivider />
           <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalInvoices) }}
+              {{ paginationMeta({ page, itemsPerPage }, totalPromotions) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalInvoices / itemsPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalInvoices / itemsPerPage)"
+              :length="Math.ceil(totalPromotions / itemsPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalPromotions / itemsPerPage)"
             >
               <template #prev="slotProps">
                 <VBtn

@@ -1,7 +1,7 @@
 import type { Promotion } from './types'
 
 const now = new Date()
-const date = now.toLocaleDateString('es-CL')
+const date = now.toLocaleDateString('en-CA')
 export const db: Promotion[] = [
   {
     id: 1,

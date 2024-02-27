@@ -2,7 +2,7 @@
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import { paginationMeta } from '@api-utils/paginationMeta'
 
-type invoiceStatus = 'Downloaded' | 'Draft' | 'Paid' | 'Sent' | 'Partial Payment' | 'Past Due' | null
+type invoiceStatus = 'Active' | 'Inactive' | null
 
 const searchQuery = ref('')
 const orderDateRange = ref('')
