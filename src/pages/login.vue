@@ -32,11 +32,11 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
     >
       <div class="position-relative bg-background rounded-lg w-100 ma-8 me-0">
         <div class="d-flex align-center justify-center w-100 h-100">
-          <VImg
-            max-width="1300"
-            src="https://res.cloudinary.com/dwbnrx0mg/image/upload/v1705895258/doan/a_01-1920x1080-1a7d0f916f14ccb238fe9fd0862894ee_npwmhe.jpg"
+          <img
+            style="height: 1300px;"
+            src="../assets/images/bg-login.jpg"
             class="auth-illustration mt-16 mb-2"
-          />
+          >
         </div>
 
         <VImg
@@ -57,7 +57,7 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
         class="mt-12 mt-sm-0 pa-4"
       >
         <VCardText>
-          <img src="https://res.cloudinary.com/dwbnrx0mg/image/upload/c_thumb,w_200,g_face/v1705993978/doan/3752bcc334a1ba2613c6d389318f503b_xau5p1.jpg">
+          <img src="../assets/images/login-svg.jpg">
           <h4 class="text-h4 mb-1">
             Chào mừng đến với <span class="text-capitalize">{{ themeConfig.app.title }}</span>! 👋🏻
           </h4>

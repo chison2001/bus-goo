@@ -1,12 +1,42 @@
 export default [
   {
-    title: 'Home',
-    to: { name: 'root' },
+    title: 'Bảng điều khiển',
+    to: { name: 'dashboard' },
     icon: { icon: 'tabler-smart-home' },
   },
   {
-    title: 'Second page',
+    title: 'Người dùng',
+    to: { name: 'user-list' },
+    icon: { icon: 'tabler-users' },
+  },
+  {
+    title: 'Khuyến mãi',
+    to: { name: 'promotion-list' },
+    icon: { icon: 'tabler-heart' },
+  },
+  {
+    title: 'Hoá đơn',
+    to: { name: 'reservation-list' },
+    icon: { icon: 'tabler-file-dollar' },
+  },
+  {
+    title: 'Lịch trình',
     to: { name: 'second-page' },
-    icon: { icon: 'tabler-file' },
+    icon: { icon: 'tabler-road' },
+  },
+  {
+    title: 'Đặt vé',
+    to: { name: 'reservation-add' },
+    icon: { icon: 'tabler-file-plus' },
+  },
+  {
+    title: 'Thêm khuyến mãi',
+    to: { name: 'second-page' },
+    icon: { icon: 'tabler-heart-plus' },
+  },
+  {
+    title: 'Thêm người dùng',
+    to: { name: 'second-page' },
+    icon: { icon: 'tabler-user-plus' },
   },
 ]
