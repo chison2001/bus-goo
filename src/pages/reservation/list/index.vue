@@ -103,7 +103,7 @@ const deleteInvoice = async (id: number) => {
   <section v-if="invoices">
     <!-- 👉 Invoice Filters  -->
     <VCard
-      title="Filters"
+      title="Bộ lọc"
       class="mb-6"
     >
       <VCardText>
@@ -189,7 +189,7 @@ const deleteInvoice = async (id: number) => {
           <div class="invoice-list-filter">
             <AppSelect
               v-model="selectedStatus"
-              placeholder="Select Status"
+              placeholder="Chọn trạng thái"
               clearable
               clear-icon="tabler-x"
               single-line

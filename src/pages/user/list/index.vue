@@ -219,12 +219,9 @@ const deleteUser = async (id: number) => {
             </VAvatar>
             <div class="d-flex flex-column">
               <h6 class="text-base">
-                <RouterLink
-                  class="font-weight-medium text-link"
-                  :to="{ name: 'user-edit-id', params: { id: item.id } }"
-                >
+                <VCardItem class="font-weight-medium text-link">
                   {{ item.fullName }}
-                </RouterLink>
+                </VCardItem>
               </h6>
             </div>
           </div>
