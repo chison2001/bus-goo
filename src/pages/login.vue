@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import background from '../assets/images/bg-login.jpg'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
@@ -32,11 +33,10 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
     >
       <div class="position-relative bg-background rounded-lg w-100 ma-8 me-0">
         <div class="d-flex align-center justify-center w-100 h-100">
-          <img
-            style="height: 1300px;"
-            src="../assets/images/bg-login.jpg"
+          <VImg
+            :src="background"
             class="auth-illustration mt-16 mb-2"
-          >
+          />
         </div>
 
         <VImg

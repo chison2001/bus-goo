@@ -55,7 +55,7 @@ export const handlerAppsPromotions = [
             return b.code.localeCompare(a.code)
         })
       }
-      if (sortByLocal === 'status') {
+      else if (sortByLocal === 'status') {
         filteredPromotion = filteredPromotion.sort((a, b) => {
           if (orderByLocal === 'asc')
             return a.status.localeCompare(b.status)

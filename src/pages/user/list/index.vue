@@ -2,18 +2,6 @@
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 
 import { paginationMeta } from '@api-utils/paginationMeta'
-import type { UserProperties } from '@db/apps/users/types'
-
-interface UserData {
-  id: number | null
-  fullName: string
-  role: string
-  address: string
-  phoneNumber: string
-  email: string
-  status: string
-  avatar: string
-}
 
 // 👉 Store
 const searchQuery = ref('')
@@ -104,21 +92,6 @@ const resolveUserStatusVariant = (stat: string) => {
   return 'primary'
 }
 
-const isAddNewUserDrawerVisible = ref(false)
-const isUserInfoEditDialogVisible = ref(false)
-const user = ref<UserData>()
-
-// 👉 Add new user
-const addNewUser = async (userData: UserProperties) => {
-  await $api('/apps/users', {
-    method: 'POST',
-    body: userData,
-  })
-
-  // refetch User
-  fetchUsers()
-}
-
 // 👉 Delete user
 const deleteUser = async (id: number) => {
   await $api(`/apps/users/${id}`, {
@@ -142,7 +115,7 @@ const deleteUser = async (id: number) => {
           <!-- 👉 Select Role -->
           <VCol
             cols="12"
-            sm="4"
+            sm="6"
           >
             <AppSelect
               v-model="selectedRole"
@@ -156,7 +129,7 @@ const deleteUser = async (id: number) => {
           <!-- 👉 Select Status -->
           <VCol
             cols="12"
-            sm="4"
+            sm="6"
           >
             <AppSelect
               v-model="selectedStatus"
@@ -210,7 +183,7 @@ const deleteUser = async (id: number) => {
           <!-- 👉 Add user button -->
           <VBtn
             prepend-icon="tabler-plus"
-            @click="isAddNewUserDrawerVisible = true"
+            to="add"
           >
             Thêm người dùng
           </VBtn>
@@ -246,12 +219,12 @@ const deleteUser = async (id: number) => {
             </VAvatar>
             <div class="d-flex flex-column">
               <h6 class="text-base">
-                <VCardItem
+                <RouterLink
                   class="font-weight-medium text-link"
-                  @click="{ isUserInfoEditDialogVisible = true; user = item; }"
+                  :to="{ name: 'user-edit-id', params: { id: item.id } }"
                 >
                   {{ item.fullName }}
-                </VCardItem>
+                </RouterLink>
               </h6>
             </div>
           </div>
@@ -302,19 +275,9 @@ const deleteUser = async (id: number) => {
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <IconBtn>
-            <VIcon
-              icon="tabler-edit"
-              @click="{ isUserInfoEditDialogVisible = true; user = item; }"
-            />
+          <IconBtn :to="{ name: 'user-edit-id', params: { id: item.id } }">
+            <VIcon icon="tabler-edit" />
           </IconBtn>
-
-          <VBtn
-            icon
-            variant="text"
-            size="small"
-            color="medium-emphasis"
-          />
         </template>
 
         <!-- pagination -->
@@ -358,13 +321,5 @@ const deleteUser = async (id: number) => {
       <!-- SECTION -->
     </VCard>
     <!-- 👉 Add New User -->
-    <UserInfoAddDialog
-      v-model:is-dialog-visible="isAddNewUserDrawerVisible"
-      @user-data="addNewUser"
-    />
-    <UserInfoEditDialog
-      v-model:isDialogVisible="isUserInfoEditDialogVisible"
-      :user-data="user"
-    />
   </section>
 </template>

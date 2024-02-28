@@ -70,6 +70,6 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
     </template>
 
     <!-- 👉 Customizer -->
-    <!-- <TheCustomizer /> -->
+    <TheCustomizer />
   </HorizontalNavLayout>
 </template>

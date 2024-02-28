@@ -50,6 +50,8 @@ declare module 'vue-router/auto/routes' {
     'reservation-edit-id': RouteRecordInfo<'reservation-edit-id', '/reservation/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'reservation-list': RouteRecordInfo<'reservation-list', '/reservation/list', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
+    'user-add': RouteRecordInfo<'user-add', '/user/add', Record<never, never>, Record<never, never>>,
+    'user-edit-id': RouteRecordInfo<'user-edit-id', '/user/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'user-list': RouteRecordInfo<'user-list', '/user/list', Record<never, never>, Record<never, never>>,
     'user-view-id': RouteRecordInfo<'user-view-id', '/user/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
   }

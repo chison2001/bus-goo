@@ -9,7 +9,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -63,7 +63,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -117,7 +117,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -171,7 +171,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -225,7 +225,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -279,7 +279,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Inactive',
     promoLines: [
       {
         id: 1,
@@ -333,7 +333,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -387,7 +387,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Inactive',
     promoLines: [
       {
         id: 1,
@@ -441,7 +441,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Inactive',
     promoLines: [
       {
         id: 1,
@@ -495,7 +495,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Inactive',
     promoLines: [
       {
         id: 1,
@@ -549,7 +549,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -603,7 +603,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Inactive',
     promoLines: [
       {
         id: 1,
@@ -657,7 +657,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -711,7 +711,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,
@@ -765,7 +765,7 @@ export const db: Promotion[] = [
     description: 'test create promotion',
     startDate: String(date),
     toDate: String(date),
-    status: 'active',
+    status: 'Active',
     promoLines: [
       {
         id: 1,

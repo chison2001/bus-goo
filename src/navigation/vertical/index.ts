@@ -37,7 +37,7 @@ export default [
   },
   {
     title: 'Thêm người dùng',
-    to: { name: 'second-page' },
+    to: { name: 'user-add' },
     icon: { icon: 'tabler-user-plus' },
   },
 ]
