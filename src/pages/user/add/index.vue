@@ -17,7 +17,14 @@ const email = ref('')
 const phoneNumber = ref('')
 const address = ref()
 const role = ref()
-const status = ref()
+const status = ref('Active')
+const city = ref('')
+const district = ref()
+const ward = ref()
+
+const cities = ['Hồ Chí Minh', 'Bình Định', 'Bình Thuận', 'Nha Trang', 'Hà Nội', 'Hải Phòng', 'Đà Nẵng']
+const districts = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
+const wards = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
 
 // 👉 drawer close
 const closeDialog = () => {
@@ -91,19 +98,6 @@ const onSubmit = () => {
             />
           </VCol>
 
-          <!-- 👉 Country -->
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <AppTextField
-              v-model="address"
-              label="Nhập địa chỉ"
-              placeholder="Nhập địa chỉ"
-              :rules="[requiredValidator]"
-            />
-          </VCol>
-
           <!-- 👉 Contact -->
           <VCol
             cols="12"
@@ -112,7 +106,7 @@ const onSubmit = () => {
             <AppTextField
               v-model="phoneNumber"
               type="number"
-              :rules="[requiredValidator]"
+              :rules="[requiredValidator, phoneNumberValidator]"
               label="Số điện thoại"
               placeholder="+1-541-754-3010"
             />
@@ -143,6 +137,45 @@ const onSubmit = () => {
               placeholder="Chọn trạng thái"
               :rules="[requiredValidator]"
               :items="[{ title: 'Active', value: 'active' }, { title: 'Inactive', value: 'inactive' }]"
+            />
+          </VCol>
+
+          <!-- 👉 Country -->
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppCombobox
+              v-model="city"
+              :items="cities"
+              label="Tỉnh/Thành phố"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+
+          <!-- 👉 Country -->
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppCombobox
+              v-model="district"
+              :items="districts"
+              label="Quận/Huyện"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+
+          <!-- 👉 Country -->
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppCombobox
+              v-model="ward"
+              :items="wards"
+              label="Phường/Xã"
+              :rules="[requiredValidator]"
             />
           </VCol>
 

@@ -2,11 +2,16 @@
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import type { VForm } from 'vuetify/components/VForm'
 
+interface Address {
+  city: string
+  district: string
+  ward: string
+}
 interface UserData {
   id: number | null
   fullName: string
   role: string
-  address: string
+  address: Address
   phoneNumber: string
   email: string
   status: string
@@ -14,6 +19,9 @@ interface UserData {
 }
 
 const emit = defineEmits<Emit>()
+const cities = ['Hồ Chí Minh', 'Bình Định', 'Bình Thuận', 'Nha Trang', 'Hà Nội', 'Hải Phòng', 'Đà Nẵng']
+const districts = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
+const wards = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
 
 const route = useRoute('user-view-id')
 
@@ -99,18 +107,6 @@ const onFormReset = () => {
             />
           </VCol>
 
-          <!-- 👉 Country -->
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <AppTextField
-              v-model="userData.address"
-              :rules="[requiredValidator]"
-              label="Địa chỉ"
-            />
-          </VCol>
-
           <!-- 👉 Status -->
           <VCol
             cols="12"
@@ -122,6 +118,45 @@ const onFormReset = () => {
               placeholder="Chọn trạng thái"
               :rules="[requiredValidator]"
               :items="[{ title: 'Active', value: 'active' }, { title: 'Inactive', value: 'inactive' }]"
+            />
+          </VCol>
+
+          <!-- 👉 Country -->
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppCombobox
+              v-model="userData.address.city"
+              :items="cities"
+              label="Tỉnh/Thành phố"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+
+          <!-- 👉 Country -->
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppCombobox
+              v-model="userData.address.district"
+              :items="districts"
+              label="Quận/Huyện"
+              :rules="[requiredValidator]"
+            />
+          </VCol>
+
+          <!-- 👉 Country -->
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppCombobox
+              v-model="userData.address.ward"
+              :items="wards"
+              label="Phường/Xã"
+              :rules="[requiredValidator]"
             />
           </VCol>
 

@@ -40,6 +40,7 @@ const label = computed(() => useAttrs().label as string | undefined)
             'v-combobox__content',
             $attrs.multiple !== undefined ? 'v-list-select-multiple' : '',
           ],
+          maxHeight: '150%',
         },
       }"
     >

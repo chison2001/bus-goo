@@ -2,7 +2,7 @@
   "Bảng điều khiển": "Dashboard",
   "Người dùng": "User",
   "Khuyến mãi": "Promotion",
-  "Hoá đơn": "Invoice",
+  "Đơn hàng": "Orders",
   "Lịch trình": "Tour",
   "Trang": "Pages",
   "Đặt vé": "Booking ticket",
@@ -24,5 +24,6 @@
   "Tổng quan về thu nhập hàng năm": "Yearly Earnings Overview",
   "Tháng 1": "July",
   "Doanh thu": "Sales",
-  "Lợi nhuận": "Profit"
+  "Lợi nhuận": "Profit",
+  "Giá": "Price"
 }

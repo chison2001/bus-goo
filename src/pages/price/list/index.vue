@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
+
 import { paginationMeta } from '@api-utils/paginationMeta'
 
-type invoiceStatus = 'Downloaded' | 'Draft' | 'Paid' | 'Sent' | 'Partial Payment' | 'Past Due' | null
-
+// 👉 Store
 const searchQuery = ref('')
-const toDateRange = ref('')
-const startDateRange = ref('')
-const selectedStatus = ref<invoiceStatus>(null)
-const selectedRows = ref<string[]>([])
-const selectedStartDate = ref()
+const selectedRole = ref()
+const selectedStatus = ref()
+const selectedFromDate = ref()
 const selectedToDate = ref()
+const toDateRange = ref('')
+const fromDateRange = ref('')
 
 // Data table options
 const itemsPerPage = ref(10)
@@ -25,43 +25,24 @@ const updateOptions = (options: any) => {
   orderBy.value = options.sortBy[0]?.order
 }
 
-// 👉 headers
+// Headers
 const headers = [
   { title: 'ID', key: 'id' },
-  { title: 'Code', key: 'code' },
-  { title: 'Ngày bắt đầu', key: 'startDate' },
+  { title: 'Mã', key: 'priceCode' },
+  { title: 'Ngày bắt đầu', key: 'fromDate' },
   { title: 'Ngày kết thúc', key: 'toDate' },
   { title: 'Trạng thái', key: 'status' },
   { title: 'Hành động', key: 'actions', sortable: false },
 ]
 
-const selectedToDateRange = computed(() => {
-  const [start, end] = toDateRange.value ? toDateRange.value.split('to') : ''
-
-  return {
-    start,
-    end,
-  }
-})
-
-const selectedStartDateRange = computed(() => {
-  const [start, end] = startDateRange.value ? startDateRange.value.split('to') : ''
-
-  return {
-    start,
-    end,
-  }
-})
-
-// 👉 Fetch Invoices
-const { data: promotionData, execute: fetchInvoices } = await useApi<any>(createUrl('apps/promotions', {
+// 👉 Fetching users
+const { data: pricesData, execute: fetchPrices } = await useApi<any>(createUrl('/apps/prices', {
   query: {
     q: searchQuery,
     status: selectedStatus,
-    startDate: selectedStartDate,
-    toDate: selectedToDate,
-    selectedToDateRange,
-    selectedStartDateRange,
+    role: selectedRole,
+    selectedFromDateRange: selectedFromDate,
+    selectedToDateRange: selectedToDate,
     itemsPerPage,
     page,
     sortBy,
@@ -69,8 +50,8 @@ const { data: promotionData, execute: fetchInvoices } = await useApi<any>(create
   },
 }))
 
-const promotions = computed(() => promotionData.value.promotions)
-const totalPromotions = computed(() => promotionData.value.totalPromotions)
+const prices = computed(() => pricesData.value.prices)
+const totalPrices = computed(() => pricesData.value.totalPrices)
 
 const resolveUserStatusVariant = (stat: string) => {
   const statLowerCase = stat.toLowerCase()
@@ -82,29 +63,20 @@ const resolveUserStatusVariant = (stat: string) => {
   return 'primary'
 }
 
-const computedMoreList = computed(() => {
-  return (paramId: number) => ([
-    { title: 'Download', value: 'download', prependIcon: 'tabler-download' },
-    {
-      title: 'Edit',
-      value: 'edit',
-      prependIcon: 'tabler-pencil',
-      to: { name: 'apps-invoice-edit-id', params: { id: paramId } },
-    },
-  ])
-})
+// 👉 Delete user
+const deletePrice = async (id: number) => {
+  await $api(`/apps/prices/${id}`, {
+    method: 'DELETE',
+  })
 
-// 👉 Delete Invoice
-const deleteInvoice = async (id: number) => {
-  await $api(`/apps/invoice/${id}`, { method: 'DELETE' })
-
-  fetchInvoices()
+  // refetch User
+  // TODO: Make this async
+  fetchPrices()
 }
 </script>
 
 <template>
-  <section v-if="promotions">
-    <!-- 👉 Invoice Filters  -->
+  <section>
     <VCard
       title="Bộ lọc"
       class="mb-6"
@@ -132,7 +104,7 @@ const deleteInvoice = async (id: number) => {
             md="4"
           >
             <AppDateTimePicker
-              v-model="startDateRange"
+              v-model="fromDateRange"
               label="Ngày bắt đầu"
               clear-icon="tabler-x"
               clearable
@@ -158,10 +130,9 @@ const deleteInvoice = async (id: number) => {
         </VRow>
       </VCardText>
     </VCard>
-
-    <VCard id="invoice-list">
-      <VCardText class="d-flex align-center flex-wrap gap-4">
-        <div class="me-3 d-flex gap-3 align-center">
+    <VCard>
+      <VCardText class="d-flex flex-wrap py-4 gap-4">
+        <div class="me-3 d-flex gap-3">
           <AppSelect
             :model-value="itemsPerPage"
             :items="[
@@ -169,18 +140,17 @@ const deleteInvoice = async (id: number) => {
               { value: 25, title: '25' },
               { value: 50, title: '50' },
               { value: 100, title: '100' },
-              { value: -1, title: 'All' },
+              { value: -1, title: 'Tất cả' },
             ]"
             style="inline-size: 6.25rem;"
             @update:model-value="itemsPerPage = parseInt($event, 10)"
           />
         </div>
-
         <VSpacer />
 
-        <div class="d-flex align-center flex-wrap gap-4">
+        <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
           <!-- 👉 Search  -->
-          <div class="invoice-list-filter">
+          <div style="inline-size: 10rem;">
             <AppTextField
               v-model="searchQuery"
               placeholder="Tìm kiếm"
@@ -188,58 +158,55 @@ const deleteInvoice = async (id: number) => {
             />
           </div>
 
-          <!-- 👉 Select status -->
-          <div class="invoice-list-filter">
-            <AppSelect
-              v-model="selectedStatus"
-              placeholder="Chọn trạng thái"
-              clearable
-              clear-icon="tabler-x"
-              single-line
-              :items="['Active', 'Inactive']"
-            />
-          </div>
-          <!-- 👉 Create invoice -->
+          <!-- 👉 Export button -->
+          <VBtn
+            variant="tonal"
+            color="secondary"
+            prepend-icon="tabler-screen-share"
+          >
+            Export
+          </VBtn>
+
+          <!-- 👉 Add user button -->
           <VBtn
             prepend-icon="tabler-plus"
-            :to="{ name: 'reservation-add' }"
+            to="add"
           >
-            Đặt vé
+            Thêm đơn giá
           </VBtn>
         </div>
       </VCardText>
+
       <VDivider />
 
-      <!-- SECTION Datatable -->
+      <!-- SECTION datatable -->
       <VDataTableServer
-        v-model="selectedRows"
         v-model:items-per-page="itemsPerPage"
         v-model:page="page"
-        :items-length="totalPromotions"
-        :items="promotions"
+        :items="prices"
+        :items-length="totalPrices"
         :headers="headers"
         class="text-no-wrap"
-        @click:row="(item) => console.log(item)"
         @update:options="updateOptions"
       >
-        <!-- ID -->
-        <template #item.id="{ item }">
+        <!-- User -->
+        <template #item.user="{ item }">
           {{ item.id }}
         </template>
 
-        <!-- Total -->
-        <template #item.total="{ item }">
-          {{ item.total }} vnd
+        <!-- 👉 Role -->
+        <template #item.priceCode="{ item }">
+          {{ item.priceCode }}
         </template>
 
-        <!-- Order Date -->
-        <template #item.orderDate="{ item }">
-          {{ item.orderDate }}
+        <!-- Plan -->
+        <template #item.fromDate="{ item }">
+          <span class="text-capitalize font-weight-medium">{{ item.fromDate }}</span>
         </template>
 
-        <!-- Start Date -->
-        <template #item.startdate="{ item }">
-          {{ item.startdate }}
+        <!-- Plan -->
+        <template #item.toDate="{ item }">
+          <span class="text-capitalize font-weight-medium">{{ item.toDate }}</span>
         </template>
 
         <!-- Status -->
@@ -256,30 +223,27 @@ const deleteInvoice = async (id: number) => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="deleteInvoice(item.id)">
+          <IconBtn @click="deletePrice(item.id)">
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <MoreBtn
-            :menu-list="computedMoreList(item.id)"
-            item-props
-            color="undefined"
-          />
+          <IconBtn :to="{ name: 'price-edit-id', params: { id: item.id } }">
+            <VIcon icon="tabler-edit" />
+          </IconBtn>
         </template>
 
         <!-- pagination -->
-
         <template #bottom>
           <VDivider />
           <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalPromotions) }}
+              {{ paginationMeta({ page, itemsPerPage }, totalPrices) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalPromotions / itemsPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalPromotions / itemsPerPage)"
+              :length="Math.ceil(totalPrices / itemsPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalPrices / itemsPerPage)"
             >
               <template #prev="slotProps">
                 <VBtn
@@ -306,24 +270,8 @@ const deleteInvoice = async (id: number) => {
           </div>
         </template>
       </VDataTableServer>
-    <!-- !SECTION -->
+      <!-- SECTION -->
     </VCard>
-  </section>
-  <section v-else>
-    <VCard>
-      <VCardTitle>Không tìm thấy hoá đơn!!</VCardTitle>
-    </VCard>
+    <!-- 👉 Add New User -->
   </section>
 </template>
-
-<style lang="scss">
-#invoice-list {
-  .invoice-list-actions {
-    inline-size: 8rem;
-  }
-
-  .invoice-list-filter {
-    inline-size: 12rem;
-  }
-}
-</style>

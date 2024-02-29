@@ -10,6 +10,7 @@ import { handlerAppsEcommerce } from '@db/apps/ecommerce/index'
 import { handlerAppsEmail } from '@db/apps/email/index'
 import { handlerAppLogistics } from '@db/apps/logistics/index'
 import { handlerAppsPermission } from '@db/apps/permission/index'
+import { handlerAppsPrice } from '@db/apps/price/index'
 import { handlerAppsPromotions } from '@db/apps/promotion/index'
 import { handlerAppsUsers } from '@db/apps/users/index'
 import { handlerAuth } from '@db/auth/index'
@@ -37,6 +38,7 @@ const worker = setupWorker(
   ...handlerAuth,
   ...handlerDashboard,
   ...handlerAppsPromotions,
+  ...handlerAppsPrice,
 )
 
 export default function () {

@@ -132,47 +132,52 @@ function handleRedirectConfirmPage() {
 
     <VRow>
       <VCol
-        lg="3"
-        sm="12"
         md="3"
         cols="12"
       >
-        <VCard class="d-flex flex-column align-items-start">
-          <VCardTitle class="text-center">
-            Bộ lọc tìm kiếm
-          </VCardTitle>
-          <VDivider />
-          <VCardText>
-            Giờ đi
-          </VCardText>
-          <div class="ms-10">
-            <VCheckbox label="Sáng sớm 00:00 - 06:00(0)" />
-            <VCheckbox label="Buổi sáng 06:00 - 12:00(0)" />
-            <VCheckbox label="Buổi chiều 12:00 - 18:00(0)" />
-            <VCheckbox label="Buổi tối 18:00 - 24:00(0)" />
-          </div>
-          <VCardText>
-            Loại xe
-          </VCardText>
-          <VCardText class="ms-2 d-flex flex-row">
-            <p class="border py-1 px-2 mx-2">
-              Ghế
-            </p>
-            <p class="border py-1 px-2 mx-2">
-              Giường
-            </p>
-            <p class="border py-1 px-2 mx-2">
-              Limousine
-            </p>
-          </VCardText>
-          <VLabel class="justify-center pb-5 text-error">
-            <VIcon
-              icon="tabler-trash"
-              color="error"
-            />
-            Bỏ lọc
-          </VLabel>
-        </VCard>
+        <VRow>
+          <VCol
+            cols="12"
+            md="12"
+          >
+            <VCard class="d-flex flex-column align-items-start">
+              <VCardTitle class="text-center">
+                Bộ lọc tìm kiếm
+              </VCardTitle>
+              <VDivider />
+              <VCardText>
+                Giờ đi
+              </VCardText>
+              <div class="ms-10">
+                <VCheckbox label="Sáng sớm 00:00 - 06:00(0)" />
+                <VCheckbox label="Buổi sáng 06:00 - 12:00(0)" />
+                <VCheckbox label="Buổi chiều 12:00 - 18:00(0)" />
+                <VCheckbox label="Buổi tối 18:00 - 24:00(0)" />
+              </div>
+              <VCardText>
+                Loại xe
+              </VCardText>
+              <VChipGroup class="ms-2 d-flex flex-row">
+                <VChip class="border py-1 px-2 mx-2">
+                  Ghế
+                </VChip>
+                <VChip class="border py-1 px-2 mx-2">
+                  Giường
+                </VChip>
+                <VChip class="border py-1 px-2 mx-2">
+                  Limousine
+                </VChip>
+              </VChipGroup>
+              <VLabel class="justify-center pb-5 text-error">
+                <VIcon
+                  icon="tabler-trash"
+                  color="error"
+                />
+                Bỏ lọc
+              </VLabel>
+            </VCard>
+          </VCol>
+        </VRow>
       </VCol>
 
       <VCol

@@ -15,14 +15,14 @@ export default [
     icon: { icon: 'tabler-heart' },
   },
   {
-    title: 'Hoá đơn',
+    title: 'Đơn hàng',
     to: { name: 'reservation-list' },
     icon: { icon: 'tabler-file-dollar' },
   },
   {
-    title: 'Lịch trình',
-    to: { name: 'second-page' },
-    icon: { icon: 'tabler-road' },
+    title: 'Giá',
+    to: { name: 'price-list' },
+    icon: { icon: 'tabler-currency-dong' },
   },
   { heading: 'Trang' },
   {

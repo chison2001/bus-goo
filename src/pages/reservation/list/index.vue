@@ -221,12 +221,7 @@ const deleteInvoice = async (id: number) => {
       >
         <!-- ID -->
         <template #item.id="{ item }">
-          <VCardItem
-            class="postion-absolute"
-            @click="{ }"
-          >
-            {{ item.id }}
-          </VCardItem>
+          {{ item.id }}
         </template>
 
         <!-- Total -->
