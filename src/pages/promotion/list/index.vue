@@ -82,18 +82,6 @@ const resolveUserStatusVariant = (stat: string) => {
   return 'primary'
 }
 
-const computedMoreList = computed(() => {
-  return (paramId: number) => ([
-    { title: 'Download', value: 'download', prependIcon: 'tabler-download' },
-    {
-      title: 'Edit',
-      value: 'edit',
-      prependIcon: 'tabler-pencil',
-      to: { name: 'apps-invoice-edit-id', params: { id: paramId } },
-    },
-  ])
-})
-
 // 👉 Delete Invoice
 const deleteInvoice = async (id: number) => {
   await $api(`/apps/invoice/${id}`, { method: 'DELETE' })
@@ -202,9 +190,9 @@ const deleteInvoice = async (id: number) => {
           <!-- 👉 Create invoice -->
           <VBtn
             prepend-icon="tabler-plus"
-            :to="{ name: 'reservation-add' }"
+            to="add"
           >
-            Đặt vé
+            Thêm khuyến mãi
           </VBtn>
         </div>
       </VCardText>
@@ -260,11 +248,9 @@ const deleteInvoice = async (id: number) => {
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <MoreBtn
-            :menu-list="computedMoreList(item.id)"
-            item-props
-            color="undefined"
-          />
+          <IconBtn :to="{ name: 'promotion-edit-id', params: { id: item.id } }">
+            <VIcon icon="tabler-edit" />
+          </IconBtn>
         </template>
 
         <!-- pagination -->

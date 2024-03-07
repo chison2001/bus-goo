@@ -47,6 +47,7 @@ declare module 'vue-router/auto/routes' {
     'price-edit-id': RouteRecordInfo<'price-edit-id', '/price/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'price-list': RouteRecordInfo<'price-list', '/price/list', Record<never, never>, Record<never, never>>,
     'promotion-add': RouteRecordInfo<'promotion-add', '/promotion/add', Record<never, never>, Record<never, never>>,
+    'promotion-edit-id': RouteRecordInfo<'promotion-edit-id', '/promotion/edit/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'promotion-list': RouteRecordInfo<'promotion-list', '/promotion/list', Record<never, never>, Record<never, never>>,
     'register': RouteRecordInfo<'register', '/register', Record<never, never>, Record<never, never>>,
     'reservation-add': RouteRecordInfo<'reservation-add', '/reservation/add', Record<never, never>, Record<never, never>>,

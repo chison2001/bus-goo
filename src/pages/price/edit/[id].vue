@@ -14,7 +14,7 @@ const boxRoute = ref('')
 const boxTypeBus = ref('')
 const priceValue = ref('')
 
-const route = useRoute('user-edit-id')
+const route = useRoute('price-edit-id')
 
 const { data: price } = await useApi<any>(`/apps/prices/${route.params.id}`)
 

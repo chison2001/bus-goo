@@ -8,11 +8,6 @@ const isFormLineValid = ref(false)
 const refFormLine = ref<VForm>()
 const isFormDetailValid = ref(false)
 const refFormDetail = ref<VForm>()
-const code = ref('')
-const description = ref('')
-const startDate = ref()
-const toDate = ref()
-const status = ref('Active')
 const newPromoDetails = ref([] as PromoDetail[])
 const newPromoLines = ref([] as PromoLine[])
 const promoTypes = ['% giá', 'giá', 'sản phẩm']
@@ -23,6 +18,11 @@ const maxdiscount = ref('')
 const discount = ref('')
 const maxdiscountdetail = ref('')
 const conditionApply = ref('')
+const route = useRoute('promotion-edit-id')
+
+const { data: promotion } = await useApi<any>(`/apps/promotions/${route.params.id}`)
+
+newPromoLines.value = promotion.value.promoLines
 
 const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
@@ -233,7 +233,7 @@ watch(dialogDetailDelete, val => {
             md="6"
           >
             <AppTextField
-              v-model="code"
+              v-model="promotion.code"
               :rules="[requiredValidator]"
               :label="$t('Code')"
               placeholder="TET2024"
@@ -246,7 +246,7 @@ watch(dialogDetailDelete, val => {
             md="6"
           >
             <AppSelect
-              v-model="status"
+              v-model="promotion.status"
               label="Chọn trạng thái"
               placeholder="Chọn trạng thái"
               :rules="[requiredValidator]"
@@ -260,7 +260,7 @@ watch(dialogDetailDelete, val => {
             md="6"
           >
             <AppDateTimePicker
-              v-model="startDate"
+              v-model="promotion.startDate"
               label="Ngày bắt đầu"
               clear-icon="tabler-x"
               clearable
@@ -275,7 +275,7 @@ watch(dialogDetailDelete, val => {
             md="6"
           >
             <AppDateTimePicker
-              v-model="toDate"
+              v-model="promotion.toDate"
               label="Ngày kết thúc"
               clear-icon="tabler-x"
               clearable
@@ -290,7 +290,7 @@ watch(dialogDetailDelete, val => {
             md="12"
           >
             <AppTextarea
-              v-model="description"
+              v-model="promotion.description"
               label="Giới thiệu chi tiết"
               placeholder="Nhập giới thiệu"
               rows="2"
