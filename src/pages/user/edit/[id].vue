@@ -23,7 +23,7 @@ const cities = ['Hồ Chí Minh', 'Bình Định', 'Bình Thuận', 'Nha Trang',
 const districts = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
 const wards = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
 
-const route = useRoute('user-view-id')
+const route = useRoute('user-edit-id')
 
 const { data: userData } = await useApi<any>(`/apps/users/${route.params.id}`)
 
@@ -46,7 +46,7 @@ const onFormReset = () => {
   <VCard class="pa-sm-8 pa-5">
     <VCardItem class="text-center">
       <VCardTitle class="text-h3 mb-3">
-        Chỉnh sửa thông tin người dùng
+        Cập nhật thông tin người dùng
       </VCardTitle>
     </VCardItem>
 

@@ -30,7 +30,7 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: tag => tag === 'swiper-container' || tag === 'swiper-slide',
+          isCustomElement: tag => tag === 'swiper-container' || tag === 'swiper-slide' || tag === 'custom-table',
         },
       },
     }),

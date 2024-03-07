@@ -1,6 +1,6 @@
 {
-  "name": "vuexy-vuejs-admin-template",
-  "version": "9.0.1",
+  "name": "busgoo-admin",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "dev": "vite",

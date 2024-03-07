@@ -14,7 +14,7 @@ export const db: Price[] = [
       {
         id: 1,
         priceDetailCode: 'PRICE0001DETAIL1',
-        priceValue: 100000,
+        priceValue: '100000',
         route: 'ROUTE0001',
         typeBus: 'TYPE001',
         status: 'Active',
@@ -22,7 +22,7 @@ export const db: Price[] = [
       {
         id: 2,
         priceDetailCode: 'PRICE0001DETAIL2',
-        priceValue: 100000,
+        priceValue: '100000',
         route: 'ROUTE0001',
         typeBus: 'TYPE001',
         status: 'Active',
@@ -40,7 +40,7 @@ export const db: Price[] = [
       {
         id: 3,
         priceDetailCode: 'PRICE0002DETAIL1',
-        priceValue: 100000,
+        priceValue: '100000',
         route: 'ROUTE0002',
         typeBus: 'TYPE002',
         status: 'Active',
@@ -48,7 +48,7 @@ export const db: Price[] = [
       {
         id: 4,
         priceDetailCode: 'PRICE0002DETAIL2',
-        priceValue: 100000,
+        priceValue: '100000',
         route: 'ROUTE0002',
         typeBus: 'TYPE002',
         status: 'Active',
@@ -66,7 +66,7 @@ export const db: Price[] = [
       {
         id: 5,
         priceDetailCode: 'PRICE0003DETAIL1',
-        priceValue: 3300000,
+        priceValue: '3300000',
         route: 'ROUTE0003',
         typeBus: 'TYPE003',
         status: 'Active',
@@ -74,7 +74,7 @@ export const db: Price[] = [
       {
         id: 6,
         priceDetailCode: 'PRICE0003DETAIL2',
-        priceValue: 300000,
+        priceValue: '300000',
         route: 'ROUTE0003',
         typeBus: 'TYPE003',
         status: 'Active',

@@ -112,6 +112,7 @@ const onSubmit = () => {
               v-model="description"
               label="Giới thiệu chi tiết"
               placeholder="Nhập giới thiệu"
+              rows="2"
             />
           </VCol>
 
