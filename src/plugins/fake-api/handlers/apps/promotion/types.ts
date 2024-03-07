@@ -1,9 +1,9 @@
 export interface PromoDetail {
   id: number
   code: string
-  discount: number
-  maxdiscount: number
-  conditionApply: number
+  discount: string
+  maxdiscount: string
+  conditionApply: string
 }
 
 export interface PromoLine {
@@ -12,7 +12,7 @@ export interface PromoLine {
   promoName: string
   productReward: string
   promoType: string
-  maxdiscount: number
+  maxdiscount: string
   promoDetails: PromoDetail[]
 }
 

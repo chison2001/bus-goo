@@ -80,6 +80,10 @@ const onSubmit = () => {
 
 function editDetail(item: PriceDetail) {
   editedIndex.value = newPriceDetails.value.indexOf(item)
+  statusDetail.value = item.status
+  boxTypeBus.value = item.typeBus
+  boxRoute.value = item.route
+  priceValue.value = item.priceValue
   editedDetail = { ...item } // Spread operator for deep copy
   dialog.value = true
 }
