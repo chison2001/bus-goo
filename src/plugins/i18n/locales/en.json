@@ -25,5 +25,11 @@
   "Tháng 1": "July",
   "Doanh thu": "Sales",
   "Lợi nhuận": "Profit",
-  "Giá": "Price"
+  "Giá": "Price",
+  "Thống kê": "Statistic",
+  "Thống kê doanh thu": "Revenue statistics",
+  "Thống kê hoá đơn": "Invoice statistics",
+  "Quản lí dữ liệu": "Data Management",
+  "Quản lí giao dịch": "Transaction anagement",
+  "Hoá đơn": "Invoice"
 }

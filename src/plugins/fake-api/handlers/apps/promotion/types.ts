@@ -1,5 +1,5 @@
 export interface PromoDetail {
-  id: number
+  id: number | null
   code: string
   discount: string
   maxdiscount: string

@@ -377,7 +377,7 @@ watch(dialogDetailDelete, val => {
               type="reset"
               variant="outlined"
               color="secondary"
-              to="list"
+              to="/promotion/list"
             >
               Huỷ
             </VBtn>

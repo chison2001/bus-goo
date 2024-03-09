@@ -1,9 +1,21 @@
 export default [
+  { heading: 'Thống kê' },
   {
     title: 'Bảng điều khiển',
     to: { name: 'dashboard' },
     icon: { icon: 'tabler-smart-home' },
   },
+  {
+    title: 'Thống kê doanh thu',
+    to: { name: 'second-page' },
+    icon: { icon: 'tabler-chart-bar' },
+  },
+  {
+    title: 'Thống kê hoá đơn',
+    to: { name: 'second-page' },
+    icon: { icon: 'tabler-report-analytics' },
+  },
+  { heading: 'Quản lí dữ liệu' },
   {
     title: 'Người dùng',
     to: { name: 'user-list' },
@@ -15,29 +27,29 @@ export default [
     icon: { icon: 'tabler-heart' },
   },
   {
+    title: 'Giá',
+    to: { name: 'price-list' },
+    icon: { icon: 'tabler-currency-dong' },
+  },
+  {
+    title: 'Tuyến đường',
+    to: { name: 'second-page' },
+    icon: { icon: 'tabler-road' },
+  },
+  {
+    title: 'Lịch trình',
+    to: { name: 'second-page' },
+    icon: { icon: 'tabler-alarm' },
+  },
+  { heading: 'Quản lí giao dịch' },
+  {
     title: 'Đơn hàng',
     to: { name: 'reservation-list' },
     icon: { icon: 'tabler-file-dollar' },
   },
   {
-    title: 'Giá',
-    to: { name: 'price-list' },
-    icon: { icon: 'tabler-currency-dong' },
-  },
-  { heading: 'Trang' },
-  {
-    title: 'Đặt vé',
-    to: { name: 'reservation-add' },
-    icon: { icon: 'tabler-file-plus' },
-  },
-  {
-    title: 'Thêm khuyến mãi',
-    to: { name: 'second-page' },
-    icon: { icon: 'tabler-heart-plus' },
-  },
-  {
-    title: 'Thêm người dùng',
-    to: { name: 'user-add' },
-    icon: { icon: 'tabler-user-plus' },
+    title: 'Hoá đơn',
+    to: { name: 'reservation-list' },
+    icon: { icon: 'tabler-file' },
   },
 ]

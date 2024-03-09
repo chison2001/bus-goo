@@ -38,7 +38,7 @@ const router = useRouter()
         class="d-flex flex-column"
       >
         <VCardItem class="py-4">
-          <VCardTitle>Shortcuts</VCardTitle>
+          <VCardTitle>Lối tắt</VCardTitle>
 
           <template #append>
             <IconBtn>

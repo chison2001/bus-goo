@@ -43,7 +43,7 @@ const dialogLineDelete = ref(false)
 const editedLineIndex = ref(-1)
 
 let editedDetail: PromoDetail = {
-  id: 0,
+  id: null,
   code: '',
   discount: '',
   maxdiscount: '',
