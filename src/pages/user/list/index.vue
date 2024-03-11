@@ -26,8 +26,6 @@ const headers = [
   { title: 'Người dùng', key: 'user' },
   { title: 'Địa chỉ', key: 'address' },
   { title: 'Số điện thoại', key: 'phoneNumber' },
-  { title: 'Email', key: 'email' },
-  { title: 'Vai trò', key: 'role' },
   { title: 'Trạng thái', key: 'status' },
   { title: 'Hành động', key: 'actions', sortable: false },
 ]
