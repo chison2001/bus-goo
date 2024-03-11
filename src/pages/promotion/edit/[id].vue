@@ -10,13 +10,13 @@ const isFormDetailValid = ref(false)
 const refFormDetail = ref<VForm>()
 const newPromoDetails = ref([] as PromoDetail[])
 const newPromoLines = ref([] as PromoLine[])
-const promoTypes = ['% giá', 'giá', 'sản phẩm']
+const promoTypes = ['chiết khấu', 'giá']
 const promoName = ref('')
-const productReward = ref('')
+const fromDate = ref('')
 const promoTypeValue = ref('')
-const maxdiscount = ref('')
+const toDate = ref('')
 const discount = ref('')
-const maxdiscountdetail = ref('')
+const maxdiscount = ref('')
 const conditionApply = ref('')
 const route = useRoute('promotion-edit-id')
 
@@ -62,21 +62,30 @@ let editedLine: PromoLine = {
   id: 0,
   code: '',
   promoName: '',
-  productReward: '',
+  fromDate: '',
   promoType: '',
-  maxdiscount: '',
+  toDate: '',
   promoDetails: [],
 }
-const defaultLine: PromoLine = { id: 0, code: '', promoName: '', productReward: '', promoType: '', maxdiscount: '', promoDetails: [] }
+const defaultLine: PromoLine = { id: 0, code: '', promoName: '', fromDate: '', promoType: '', toDate: '', promoDetails: [] }
+
+function addLine() {
+  dialogLine.value = true
+  newPromoDetails.value = []
+  promoName.value = ''
+  fromDate.value = ''
+  toDate.value = ''
+  promoTypeValue.value = ''
+}
 
 // Function to edit promo line
 function editLine(item: PromoLine) {
   editedLineIndex.value = newPromoLines.value.indexOf(item)
   promoName.value = item.promoName
-  productReward.value = item.productReward
+  fromDate.value = item.fromDate
   promoTypeValue.value = item.promoType
-  maxdiscount.value = item.maxdiscount
-  newPromoDetails.value = item.promoDetails
+  toDate.value = item.toDate
+  newPromoDetails.value = { ...item.promoDetails }
   editedLine = { ...item }
   dialogLine.value = true
 }
@@ -115,9 +124,9 @@ function closeLineDelete() {
 // Function to save promo line
 function saveLine() {
   editedLine.promoName = promoName.value
-  editedLine.productReward = productReward.value
+  editedLine.fromDate = fromDate.value
   editedLine.promoType = promoTypeValue.value
-  editedLine.maxdiscount = maxdiscount.value
+  editedLine.toDate = toDate.value
   editedLine.promoDetails = newPromoDetails.value
   newPromoDetails.value = []
   refFormLine.value?.validate().then(({ valid }) => {
@@ -145,10 +154,17 @@ watch(dialogLineDelete, val => {
     closeLineDelete()
 })
 
+function addDetail() {
+  dialogDetail.value = true
+  discount.value = ''
+  maxdiscount.value = ''
+  conditionApply.value = ''
+}
+
 function editDetail(item: PromoDetail) {
   editedDetailIndex.value = newPromoDetails.value.indexOf(item)
   discount.value = item.discount
-  maxdiscountdetail.value = item.maxdiscount
+  maxdiscount.value = item.maxdiscount
   conditionApply.value = item.conditionApply
   editedDetail = { ...item }
   dialogDetail.value = true
@@ -183,7 +199,7 @@ function closeDetailDelete() {
 
 function saveDetail() {
   editedDetail.discount = discount.value
-  editedDetail.maxdiscount = maxdiscountdetail.value
+  editedDetail.maxdiscount = maxdiscount.value
   editedDetail.conditionApply = conditionApply.value
   refFormDetail.value?.validate().then(({ valid }) => {
     if (valid) {
@@ -215,7 +231,7 @@ watch(dialogDetailDelete, val => {
   <VCard class="pa-sm-8 pa-5">
     <VCardItem class="text-center">
       <VCardTitle class="text-h3 mb-3">
-        Thêm chương trình khuyến mãi
+        Chỉnh sửa chương trình khuyến mãi
       </VCardTitle>
     </VCardItem>
 
@@ -298,9 +314,6 @@ watch(dialogDetailDelete, val => {
           </VCol>
 
           <VCardText>
-            <VBtn @click="dialogLine = true">
-              Thêm dòng khuyến mãi
-            </VBtn>
             <VTable>
               <thead>
                 <tr>
@@ -308,19 +321,27 @@ watch(dialogDetailDelete, val => {
                     STT
                   </th>
                   <th class="text-center">
+                    CODE
+                  </th>
+                  <th class="text-center">
                     Tên dòng
                   </th>
                   <th class="text-center">
-                    Phần thưởng
+                    Ngày bắt đầu
                   </th>
                   <th class="text-center">
-                    Loại
+                    Ngày kết thúc
                   </th>
                   <th class="text-center">
                     Giảm giá tối đa
                   </th>
                   <th class="text-center">
-                    Hành động
+                    <VIcon
+                      class="me-2"
+                      size="small"
+                      icon="tabler-plus"
+                      @click="addLine"
+                    />
                   </th>
                 </tr>
               </thead>
@@ -333,16 +354,19 @@ watch(dialogDetailDelete, val => {
                     {{ index + 1 }}
                   </td>
                   <td class="text-center">
+                    {{ item.code }}
+                  </td>
+                  <td class="text-center">
                     {{ item.promoName }}
                   </td>
                   <td class="text-center">
-                    {{ item.productReward }}
+                    {{ item.fromDate }}
+                  </td>
+                  <td class="text-center">
+                    {{ item.toDate }}
                   </td>
                   <td class="text-center">
                     {{ item.promoType }}
-                  </td>
-                  <td class="text-center">
-                    {{ item.maxdiscount }}
                   </td>
                   <td class="text-center">
                     <VIcon
@@ -379,7 +403,7 @@ watch(dialogDetailDelete, val => {
               color="secondary"
               to="/promotion/list"
             >
-              Huỷ
+              Trở lại
             </VBtn>
           </VCol>
         </VRow>
@@ -387,6 +411,7 @@ watch(dialogDetailDelete, val => {
       <VDialog
         v-model="dialogLine"
         max-width="1000px"
+        persistent
       >
         <VCard>
           <VCardTitle>
@@ -415,10 +440,28 @@ watch(dialogDetailDelete, val => {
                   md="6"
                   mb="12"
                 >
-                  <AppTextField
-                    v-model="productReward"
-                    label="Loại sản phẩm khuyến mãi"
+                  <AppDateTimePicker
+                    v-model="fromDate"
+                    label="Ngày bắt đầu"
+                    clear-icon="tabler-x"
+                    clearable
                     :rules="[requiredValidator]"
+                    placeholder="Chọn ngày"
+                  />
+                </VCol>
+
+                <VCol
+                  cols="12"
+                  md="6"
+                  mb="12"
+                >
+                  <AppDateTimePicker
+                    v-model="toDate"
+                    label="Ngày kết thúc"
+                    clear-icon="tabler-x"
+                    clearable
+                    :rules="[requiredValidator]"
+                    placeholder="Chọn ngày"
                   />
                 </VCol>
                 <VCol
@@ -433,22 +476,8 @@ watch(dialogDetailDelete, val => {
                     :rules="[requiredValidator]"
                   />
                 </VCol>
-                <VCol
-                  cols="12"
-                  md="6"
-                  mb="12"
-                >
-                  <AppTextField
-                    v-model="maxdiscount"
-                    label="Giảm giá tối đa"
-                    :rules="[requiredValidator]"
-                  />
-                </VCol>
               </VRow>
               <VCardText>
-                <VBtn @click="dialogDetail = true">
-                  Thêm chi tiết khuyến mãi
-                </VBtn>
                 <VTable>
                   <thead>
                     <tr>
@@ -465,7 +494,11 @@ watch(dialogDetailDelete, val => {
                         Điều kiện áp dụng
                       </th>
                       <th class="text-center">
-                        Hành động
+                        <VIcon
+                          class="me-2"
+                          icon="tabler-plus"
+                          @click="addDetail"
+                        />
                       </th>
                     </tr>
                   </thead>
@@ -575,7 +608,7 @@ watch(dialogDetailDelete, val => {
                 >
                   <AppTextField
                     v-model="discount"
-                    label="Giảm giá chi tiết"
+                    label="Giảm giá"
                     :rules="[requiredValidator]"
                   />
                 </VCol>
@@ -585,7 +618,7 @@ watch(dialogDetailDelete, val => {
                   mb="12"
                 >
                   <AppTextField
-                    v-model="maxdiscountdetail"
+                    v-model="maxdiscount"
                     label="Giảm giá tối đa"
                     :rules="[requiredValidator]"
                   />
@@ -597,7 +630,7 @@ watch(dialogDetailDelete, val => {
                 >
                   <AppTextField
                     v-model="conditionApply"
-                    label="Điều kiện áp dụng"
+                    label="Giá mua tối thiểu"
                     :rules="[requiredValidator]"
                   />
                 </VCol>

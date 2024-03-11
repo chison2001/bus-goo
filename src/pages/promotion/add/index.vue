@@ -124,7 +124,7 @@ const onSubmit = () => {
               color="secondary"
               to="list"
             >
-              Huỷ
+              Trở lại
             </VBtn>
           </VCol>
         </VRow>
