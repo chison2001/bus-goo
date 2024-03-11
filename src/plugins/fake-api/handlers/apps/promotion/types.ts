@@ -10,9 +10,9 @@ export interface PromoLine {
   id: number
   code: string
   promoName: string
-  productReward: string
   promoType: string
-  maxdiscount: string
+  fromDate: string
+  toDate: string
   promoDetails: PromoDetail[]
 }
 
@@ -23,5 +23,6 @@ export interface Promotion {
   toDate: string
   status: string
   description: string
+  name: string
   promoLines: PromoLine[]
 }

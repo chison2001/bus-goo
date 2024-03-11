@@ -82,19 +82,6 @@ const onFormReset = () => {
             />
           </VCol>
 
-          <!-- 👉 Status -->
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <AppSelect
-              v-model="userData.status"
-              :rules="[requiredValidator]"
-              label="Trạng thái"
-              :items="[{ title: 'Active', value: 'active' }, { title: 'Inactive', value: 'inactive' }]"
-            />
-          </VCol>
-
           <!-- 👉 Contact -->
           <VCol
             cols="12"
@@ -104,6 +91,19 @@ const onFormReset = () => {
               v-model="userData.phoneNumber"
               :rules="[requiredValidator]"
               label="Số điện thoại"
+            />
+          </VCol>
+
+          <!-- 👉 Role -->
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppSelect
+              v-model="userData.role"
+              :rules="[requiredValidator]"
+              label="Vai trò"
+              :items="[{ title: 'Admin', value: 'admin' }, { title: 'Staff', value: 'staff' }, { title: 'Customer', value: 'customer' }]"
             />
           </VCol>
 

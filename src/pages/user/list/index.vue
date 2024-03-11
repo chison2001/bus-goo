@@ -6,10 +6,7 @@ import { paginationMeta } from '@api-utils/paginationMeta'
 // 👉 Store
 const searchQuery = ref('')
 const selectedRole = ref()
-const selectedAddress = ref()
 const selectedStatus = ref()
-const selectedPhoneNumber = ref()
-const selectedEmail = ref()
 
 // Data table options
 const itemsPerPage = ref(10)
@@ -40,10 +37,7 @@ const { data: usersData, execute: fetchUsers } = await useApi<any>(createUrl('/a
   query: {
     q: searchQuery,
     status: selectedStatus,
-    address: selectedAddress,
     role: selectedRole,
-    phoneNumber: selectedPhoneNumber,
-    email: selectedEmail,
     itemsPerPage,
     page,
     sortBy,

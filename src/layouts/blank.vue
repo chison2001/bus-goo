@@ -20,8 +20,6 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
 </script>
 
 <template>
-  <AppLoadingIndicator ref="refLoadingIndicator" />
-
   <div class="layout-wrapper layout-blank">
     <RouterView #="{Component}">
       <Suspense

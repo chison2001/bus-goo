@@ -16,8 +16,6 @@ const fullName = ref('')
 const email = ref('')
 const phoneNumber = ref('')
 const address = ref()
-const role = ref()
-const status = ref('Active')
 const city = ref('')
 const district = ref()
 const ward = ref()
@@ -26,14 +24,6 @@ const cities = ['Hồ Chí Minh', 'Bình Định', 'Bình Thuận', 'Nha Trang',
 const districts = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
 const wards = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
 
-// 👉 drawer close
-const closeDialog = () => {
-  nextTick(() => {
-    refForm.value?.reset()
-    refForm.value?.resetValidation()
-  })
-}
-
 const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (valid) {
@@ -41,10 +31,10 @@ const onSubmit = () => {
         id: 0,
         fullName: fullName.value,
         address: address.value,
-        role: role.value,
+        role: '',
         phoneNumber: phoneNumber.value,
         email: email.value,
-        status: status.value,
+        status: '',
         avatar: '',
       })
       nextTick(() => {
@@ -112,34 +102,6 @@ const onSubmit = () => {
             />
           </VCol>
 
-          <!-- 👉 Role -->
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <AppSelect
-              v-model="role"
-              label="Chọn vai trò"
-              placeholder="Chọn vai trò"
-              :rules="[requiredValidator]"
-              :items="['Admin', 'Manager', 'Staff', 'Customer']"
-            />
-          </VCol>
-
-          <!-- 👉 Status -->
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <AppSelect
-              v-model="status"
-              label="Chọn trạng thái"
-              placeholder="Chọn trạng thái"
-              :rules="[requiredValidator]"
-              :items="[{ title: 'Active', value: 'active' }, { title: 'Inactive', value: 'inactive' }]"
-            />
-          </VCol>
-
           <!-- 👉 Country -->
           <VCol
             cols="12"
@@ -195,9 +157,8 @@ const onSubmit = () => {
               variant="outlined"
               color="secondary"
               to="list"
-              @click="closeDialog"
             >
-              Huỷ
+              Trở lại
             </VBtn>
           </VCol>
         </VRow>
