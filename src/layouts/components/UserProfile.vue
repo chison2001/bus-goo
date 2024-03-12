@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import avatar1 from '@images/avatars/avatar-1.png'
+
+function logout() {
+  useCookie('accessToken').value = undefined
+}
 </script>
 
 <template>
@@ -107,7 +111,9 @@ import avatar1 from '@images/avatars/avatar-1.png'
               />
             </template>
 
-            <VListItemTitle>{{ $t("Đăng xuất") }}</VListItemTitle>
+            <VListItemTitle @click="logout">
+              {{ $t("Đăng xuất") }}
+            </VListItemTitle>
           </VListItem>
         </VList>
       </VMenu>

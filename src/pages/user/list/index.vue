@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
-
+import $api from '@/utils/api'
 import { paginationMeta } from '@api-utils/paginationMeta'
 
 // 👉 Store

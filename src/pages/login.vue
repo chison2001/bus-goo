@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { VForm } from 'vuetify/components/VForm'
 import background from '../assets/images/bg-login.jpg'
+import $api from '@/utils/api'
 import { useGenerateImageVariant } from '@core/composable/useGenerateImageVariant'
 import authV2MaskDark from '@images/pages/misc-mask-dark.png'
 import authV2MaskLight from '@images/pages/misc-mask-light.png'
@@ -8,6 +10,7 @@ import { themeConfig } from '@themeConfig'
 definePage({
   meta: {
     layout: 'blank',
+    unauthenticatedOnly: true,
   },
 })
 
@@ -17,9 +20,44 @@ const form = ref({
   remember: false,
 })
 
+const refVForm = ref<VForm>()
+
+const route = useRoute()
+const router = useRouter()
+
 const isPasswordVisible = ref(false)
 
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
+
+const login = async () => {
+  const res = await $api('/auth/login', {
+    method: 'POST',
+    data: {
+      email: form.value.email,
+      password: form.value.password,
+    },
+
+  })
+
+  const { valueReponse } = res.data
+
+  console.log(valueReponse.token)
+  useCookie('accessToken').value = valueReponse.token
+
+  // Redirect to `to` query if exist or redirect to index route
+  // ❗ nextTick is required to wait for DOM updates and later redirect
+  await nextTick(() => {
+    router.replace(route.query.to ? String(route.query.to) : '/')
+  })
+}
+
+const onSubmit = () => {
+  refVForm.value?.validate()
+    .then(({ valid: isValid }) => {
+      if (isValid)
+        login()
+    })
+}
 </script>
 
 <template>
@@ -66,7 +104,10 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
           </p>
         </VCardText>
         <VCardText>
-          <VForm @submit.prevent="() => { }">
+          <VForm
+            ref="refVForm"
+            @submit.prevent="onSubmit"
+          >
             <VRow>
               <!-- email -->
               <VCol cols="12">
@@ -75,6 +116,7 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
                   autofocus
                   label="Email"
                   type="email"
+                  :rules="[requiredValidator, emailValidator]"
                   placeholder="sonle@email.com"
                 />
               </VCol>
@@ -85,6 +127,7 @@ const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
                   v-model="form.password"
                   label="Password"
                   placeholder="············"
+                  :rules="[requiredValidator]"
                   :type="isPasswordVisible ? 'text' : 'password'"
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
