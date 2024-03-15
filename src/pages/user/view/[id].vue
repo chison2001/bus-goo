@@ -1,9 +1,18 @@
 <script setup lang="ts">
+import $api from '@/utils/api'
 import UserBioPanel from '@/views/apps/user/view/UserBioPanel.vue'
 
 const route = useRoute('user-view-id')
 
-const { data: userData } = await useApi<any>(`/apps/users/${route.params.id}`)
+const res = await $api('api/user/get', {
+  method: 'GET',
+  params: {
+    userId: route.params.id,
+  },
+
+})
+
+const userData = res.data.valueReponse.data
 </script>
 
 <template>

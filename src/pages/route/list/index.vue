@@ -203,7 +203,7 @@ function formatTime(timeString: string) {
             prepend-icon="tabler-plus"
             to="add"
           >
-            Thêm khuyến mãi
+            Thêm tuyến đường
           </VBtn>
         </div>
       </VCardText>

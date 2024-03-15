@@ -179,8 +179,8 @@ const deleteUser = async (id: number) => {
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <IconBtn :to="{ name: 'user-edit-id', params: { id: item.userId } }">
-            <VIcon icon="tabler-edit" />
+          <IconBtn :to="{ name: 'user-view-id', params: { id: item.userId } }">
+            <VIcon icon="tabler-eye" />
           </IconBtn>
         </template>
 
