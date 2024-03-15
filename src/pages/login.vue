@@ -41,7 +41,6 @@ const login = async () => {
 
   const { valueReponse } = res.data
 
-  console.log(valueReponse.token)
   useCookie('accessToken').value = valueReponse.token
 
   // Redirect to `to` query if exist or redirect to index route

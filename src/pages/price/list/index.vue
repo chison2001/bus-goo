@@ -1,19 +1,15 @@
 <script setup lang="ts">
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
-
+import $api from '@/utils/api'
 import { paginationMeta } from '@api-utils/paginationMeta'
 
 // 👉 Store
-const searchQuery = ref('')
-const selectedRole = ref()
 const selectedStatus = ref()
-const selectedFromDate = ref()
-const selectedToDate = ref()
-const toDateRange = ref('')
-const fromDateRange = ref('')
+const selectedFromDate = ref('')
+const selectedToDate = ref('')
 
 // Data table options
-const itemsPerPage = ref(10)
+const itemPerPage = ref(10)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
@@ -27,7 +23,6 @@ const updateOptions = (options: any) => {
 
 // Headers
 const headers = [
-  { title: 'ID', key: 'id' },
   { title: 'Mã', key: 'priceCode' },
   { title: 'Ngày bắt đầu', key: 'fromDate' },
   { title: 'Ngày kết thúc', key: 'toDate' },
@@ -35,38 +30,42 @@ const headers = [
   { title: 'Hành động', key: 'actions', sortable: false },
 ]
 
+const status = [
+  { title: 'Active', value: 1 },
+  { title: 'Inactive', value: 0 },
+]
+
 // 👉 Fetching users
-const { data: pricesData, execute: fetchPrices } = await useApi<any>(createUrl('/apps/prices', {
+const { data: pricesData, execute: fetchPrices } = await useApi<any>(createUrl('api/price/find', {
   query: {
-    q: searchQuery,
     status: selectedStatus,
-    role: selectedRole,
-    selectedFromDateRange: selectedFromDate,
-    selectedToDateRange: selectedToDate,
-    itemsPerPage,
-    page,
+    fromDate: selectedFromDate,
+    toDate: selectedToDate,
+    itemPerPage,
+    page: page.value - 1,
     sortBy,
     orderBy,
   },
 }))
 
-const prices = computed(() => pricesData.value.prices)
-const totalPrices = computed(() => pricesData.value.totalPrices)
+const prices = computed(() => pricesData.value.valueReponse.data.content)
+const totalPrices = computed(() => pricesData.value.valueReponse.data.totalElements)
 
-const resolveUserStatusVariant = (stat: string) => {
-  const statLowerCase = stat.toLowerCase()
-  if (statLowerCase === 'active')
-    return 'success'
-  if (statLowerCase === 'inactive')
-    return 'secondary'
-
-  return 'primary'
+const resolveUserStatusVariant = (stat: number) => {
+  const statLowerCase = stat
+  if (statLowerCase === 1)
+    return { color: 'success', value: 'active' }
+  if (statLowerCase === 0)
+    return { color: 'secondary', value: 'inactive' }
 }
 
 // 👉 Delete user
 const deletePrice = async (id: number) => {
-  await $api(`/apps/prices/${id}`, {
-    method: 'DELETE',
+  await $api('api/price/delete', {
+    method: 'GET',
+    params: {
+      priceId: id,
+    },
   })
 
   // refetch User
@@ -94,7 +93,7 @@ const deletePrice = async (id: number) => {
               placeholder="Chọn trạng thái"
               clearable
               clear-icon="tabler-x"
-              :items="['Active', 'Inactive']"
+              :items="status"
             />
           </VCol>
 
@@ -104,11 +103,10 @@ const deletePrice = async (id: number) => {
             md="4"
           >
             <AppDateTimePicker
-              v-model="fromDateRange"
+              v-model="selectedFromDate"
               label="Ngày bắt đầu"
               clear-icon="tabler-x"
               clearable
-              :config="{ mode: 'range' }"
               placeholder="Chọn ngày"
             />
           </VCol>
@@ -119,11 +117,10 @@ const deletePrice = async (id: number) => {
             md="4"
           >
             <AppDateTimePicker
-              v-model="toDateRange"
+              v-model="selectedToDate"
               label="Ngày kết thúc"
               clear-icon="tabler-x"
               clearable
-              :config="{ mode: 'range' }"
               placeholder="Chọn ngày"
             />
           </VCol>
@@ -134,7 +131,7 @@ const deletePrice = async (id: number) => {
       <VCardText class="d-flex flex-wrap py-4 gap-4">
         <div class="me-3 d-flex gap-3">
           <AppSelect
-            :model-value="itemsPerPage"
+            :model-value="itemPerPage"
             :items="[
               { value: 10, title: '10' },
               { value: 25, title: '25' },
@@ -143,21 +140,12 @@ const deletePrice = async (id: number) => {
               { value: -1, title: 'Tất cả' },
             ]"
             style="inline-size: 6.25rem;"
-            @update:model-value="itemsPerPage = parseInt($event, 10)"
+            @update:model-value="itemPerPage = parseInt($event, 10)"
           />
         </div>
         <VSpacer />
 
         <div class="app-user-search-filter d-flex align-center flex-wrap gap-4">
-          <!-- 👉 Search  -->
-          <div style="inline-size: 10rem;">
-            <AppTextField
-              v-model="searchQuery"
-              placeholder="Tìm kiếm"
-              density="compact"
-            />
-          </div>
-
           <!-- 👉 Export button -->
           <VBtn
             variant="tonal"
@@ -181,7 +169,7 @@ const deletePrice = async (id: number) => {
 
       <!-- SECTION datatable -->
       <VDataTableServer
-        v-model:items-per-page="itemsPerPage"
+        v-model:items-per-page="itemPerPage"
         v-model:page="page"
         :items="prices"
         :items-length="totalPrices"
@@ -189,14 +177,9 @@ const deletePrice = async (id: number) => {
         class="text-no-wrap"
         @update:options="updateOptions"
       >
-        <!-- User -->
-        <template #item.user="{ item }">
-          {{ item.id }}
-        </template>
-
         <!-- 👉 Role -->
         <template #item.priceCode="{ item }">
-          {{ item.priceCode }}
+          {{ item.code }}
         </template>
 
         <!-- Plan -->
@@ -212,12 +195,12 @@ const deletePrice = async (id: number) => {
         <!-- Status -->
         <template #item.status="{ item }">
           <VChip
-            :color="resolveUserStatusVariant(item.status)"
+            :color="resolveUserStatusVariant(item.status)?.color"
             size="small"
             label
             class="text-capitalize"
           >
-            {{ item.status }}
+            {{ resolveUserStatusVariant(item.status)?.value }}
           </VChip>
         </template>
 
@@ -237,13 +220,13 @@ const deletePrice = async (id: number) => {
           <VDivider />
           <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalPrices) }}
+              {{ paginationMeta({ page, itemPerPage }, totalPrices) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalPrices / itemsPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalPrices / itemsPerPage)"
+              :length="Math.ceil(totalPrices / itemPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalPrices / itemPerPage)"
             >
               <template #prev="slotProps">
                 <VBtn

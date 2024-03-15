@@ -33,7 +33,7 @@ export default [
   },
   {
     title: 'Tuyến đường',
-    to: { name: 'second-page' },
+    to: { name: 'route-list' },
     icon: { icon: 'tabler-road' },
   },
   {

@@ -1,17 +1,40 @@
 <script setup lang="ts">
 import { VForm } from 'vuetify/components/VForm'
+import $api from '@/utils/api'
 
 const isFormValid = ref(false)
 const refForm = ref<VForm>()
 const code = ref('')
+const name = ref('')
 const description = ref('')
-const startDate = ref()
-const toDate = ref()
-const status = ref('Inactive')
+const fromDate = ref('')
+const toDate = ref('')
+const router = useRouter()
+
+const add = async () => {
+  const res = await $api('/api/promotion/create-promotion', {
+    method: 'POST',
+    data: {
+      code: code.value,
+      name: name.value,
+      fromDate: fromDate.value,
+      toDate: toDate.value,
+      description: description.value,
+    },
+
+  })
+
+  const data = res.data
+
+  console.log(data.respType === '200')
+  if (data.respType === 200)
+    router.replace('/promotion/list')
+}
 
 const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (valid) {
+      add()
       nextTick(() => {
         refForm.value?.reset()
         refForm.value?.resetValidation()
@@ -37,7 +60,7 @@ const onSubmit = () => {
         @submit.prevent="onSubmit"
       >
         <VRow>
-          <!-- 👉 Full name -->
+          <!-- 👉 code -->
           <VCol
             cols="12"
             md="6"
@@ -50,36 +73,34 @@ const onSubmit = () => {
             />
           </VCol>
 
-          <!-- 👉 Status -->
+          <!-- 👉 Name -->
           <VCol
             cols="12"
             md="6"
           >
-            <AppSelect
-              v-model="status"
-              label="Chọn trạng thái"
-              placeholder="Chọn trạng thái"
+            <AppTextField
+              v-model="name"
               :rules="[requiredValidator]"
-              :items="[{ title: 'Active', value: 'active' }, { title: 'Inactive', value: 'inactive' }]"
+              label="Nhập tên chương trình"
+              placeholder="Khuyến mãi tết 2024"
             />
           </VCol>
 
-          <!-- 👉 Email -->
+          <!-- 👉 from date -->
           <VCol
             cols="12"
             md="6"
           >
             <AppDateTimePicker
-              v-model="startDate"
+              v-model="fromDate"
               label="Ngày bắt đầu"
               clear-icon="tabler-x"
               clearable
               :rules="[requiredValidator]"
-              placeholder="Chọn ngày"
             />
           </VCol>
 
-          <!-- 👉 Country -->
+          <!-- 👉 to date -->
           <VCol
             cols="12"
             md="6"
@@ -90,11 +111,10 @@ const onSubmit = () => {
               clear-icon="tabler-x"
               clearable
               :rules="[requiredValidator]"
-              placeholder="Chọn ngày"
             />
           </VCol>
 
-          <!-- 👉 Contact -->
+          <!-- 👉 description -->
           <VCol
             cols="12"
             md="12"

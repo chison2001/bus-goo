@@ -1,18 +1,27 @@
 <script setup lang="ts">
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
+import { VCardText } from 'vuetify/lib/components/index.mjs'
 import $api from '@/utils/api'
 import { paginationMeta } from '@api-utils/paginationMeta'
 
 const searchQuery = ref('')
 const selectedStatus = ref('')
-const selectedFromDate = ref('')
-const selectedToDate = ref('')
+
+interface Region {
+  value: number
+  title: string
+}
+const selectedFrom = ref()
+const selectedTo = ref()
+const from = ref()
+const to = ref()
 
 // Data table options
 const itemPerPage = ref(10)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
+const cities = ref([] as Region[])
 
 // Update data table options
 const updateOptions = (options: any) => {
@@ -24,9 +33,9 @@ const updateOptions = (options: any) => {
 // 👉 headers
 const headers = [
   { title: 'Code', key: 'code' },
-  { title: 'Tên', key: 'name' },
-  { title: 'Ngày bắt đầu', key: 'fromDate' },
-  { title: 'Ngày kết thúc', key: 'toDate' },
+  { title: 'Điểm khởi hành', key: 'from.fullName' },
+  { title: 'Điểm đến', key: 'to.fullName' },
+  { title: 'Thời gian khởi hành', key: 'transferTime' },
   { title: 'Trạng thái', key: 'status' },
   { title: 'Hành động', key: 'actions', sortable: false },
 ]
@@ -37,12 +46,11 @@ const status = [
 ]
 
 // 👉 Fetch Invoices
-const { data: promotionData, execute: fetchInvoices } = await useApi<any>(createUrl('api/promotion/find', {
+const { data: routeData, execute: fetchRoutes } = await useApi<any>(createUrl('api/route/find', {
   query: {
-    q: searchQuery,
     status: selectedStatus,
-    fromDate: selectedFromDate,
-    toDate: selectedToDate,
+    fromId: from,
+    toId: to,
     itemPerPage,
     page: page.value - 1,
     sortBy,
@@ -50,8 +58,8 @@ const { data: promotionData, execute: fetchInvoices } = await useApi<any>(create
   },
 }))
 
-const promotions = computed(() => promotionData.value.valueReponse.data.content)
-const totalPromotions = computed(() => promotionData.value.valueReponse.data.totalElements)
+const routes = computed(() => routeData.value.valueReponse.data.content)
+const totalPromotions = computed(() => routeData.value.valueReponse.data.totalElements)
 
 const resolveUserStatusVariant = (stat: number) => {
   const statLowerCase = stat
@@ -61,16 +69,43 @@ const resolveUserStatusVariant = (stat: number) => {
     return { color: 'secondary', value: 'inactive' }
 }
 
+watch(selectedFrom, () => from.value = selectedFrom.value.value)
+watch(selectedTo, () => to.value = selectedTo.value.value)
+
 // 👉 Delete Invoice
 const deleteInvoice = async (id: number) => {
   await $api(`/apps/invoice/${id}`, { method: 'DELETE' })
 
-  fetchInvoices()
+  fetchRoutes()
+}
+
+async function getRegion(parentId: number | null, regionStructureId: number) {
+  const res = await $api('/api/region/find', {
+    method: 'POST',
+    data: {
+      parentId,
+      regionStructureId,
+    },
+  })
+
+  const data = res.data.valueReponse.data
+
+  cities.value = data.map((item: { id: any; fullName: any }) => ({
+    value: item.id,
+    title: item.fullName,
+  }))
+}
+await getRegion(null, 1)
+
+function formatTime(timeString: string) {
+  const time = new Date(`2000-01-01T${timeString}`)
+
+  return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 </script>
 
 <template>
-  <section v-if="promotions">
+  <section v-if="routes">
     <!-- 👉 Invoice Filters  -->
     <VCard
       title="Bộ lọc"
@@ -98,12 +133,12 @@ const deleteInvoice = async (id: number) => {
             cols="12"
             md="4"
           >
-            <AppDateTimePicker
-              v-model="selectedFromDate"
-              label="Ngày bắt đầu"
-              clear-icon="tabler-x"
-              clearable
-              placeholder="Chọn ngày"
+            <AppCombobox
+              v-model="selectedFrom"
+              :items="cities"
+              label="Điểm khởi hành"
+              item-value="value"
+              :rules="[requiredValidator]"
             />
           </VCol>
 
@@ -112,12 +147,11 @@ const deleteInvoice = async (id: number) => {
             cols="12"
             md="4"
           >
-            <AppDateTimePicker
-              v-model="selectedToDate"
-              label="Ngày kết thúc"
-              clear-icon="tabler-x"
-              clearable
-              placeholder="Chọn ngày"
+            <AppCombobox
+              v-model="selectedTo"
+              :items="cities"
+              label="Điểm đến"
+              :rules="[requiredValidator]"
             />
           </VCol>
         </VRow>
@@ -180,7 +214,7 @@ const deleteInvoice = async (id: number) => {
         v-model:items-per-page="itemPerPage"
         v-model:page="page"
         :items-length="totalPromotions"
-        :items="promotions"
+        :items="routes"
         :headers="headers"
         class="text-no-wrap"
         @click:row="(item) => console.log(item)"
@@ -192,18 +226,18 @@ const deleteInvoice = async (id: number) => {
         </template>
 
         <!-- Total -->
-        <template #item.name="{ item }">
-          {{ item.name }}
+        <template #item.from.fullName="{ item }">
+          {{ item.from.fullName }}
         </template>
 
         <!-- Order Date -->
-        <template #item.startdate="{ item }">
-          {{ item.startdate }}
+        <template #item.to.fullName="{ item }">
+          {{ item.to.fullName }}
         </template>
 
         <!-- Start Date -->
-        <template #item.toDate="{ item }">
-          {{ item.toDate }}
+        <template #item.transferTime="{ item }">
+          {{ formatTime(item.transferTime) }}
         </template>
 
         <!-- Status -->

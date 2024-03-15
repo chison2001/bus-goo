@@ -17,8 +17,6 @@ export const setupGuards = (router: Router) => {
      */
     const isLoggedIn = !!(useCookie('accessToken').value)
 
-    console.log(isLoggedIn)
-
     /*
       If user is logged in and is trying to access login like page, redirect to home
       else allow visiting the page

@@ -33,6 +33,7 @@ const props = defineProps({
   modelModifiers: Object as PropType<Record<string, boolean>>,
   ...makeVInputProps({
     density: 'compact',
+    hideDetails: 'auto',
   }),
   ...makeVFieldProps({
     variant: 'outlined',
@@ -75,6 +76,7 @@ const onClear = (el: MouseEvent) => {
 
   nextTick(() => {
     emit('update:modelValue', '')
+
     emit('click:clear', el)
   })
 }

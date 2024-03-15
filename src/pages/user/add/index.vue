@@ -1,42 +1,46 @@
 <script setup lang="ts">
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import type { VForm } from 'vuetify/components/VForm'
+import { VForm } from 'vuetify/components/VForm'
+import $api from '@/utils/api'
 
-import type { UserProperties } from '@db/apps/users/types'
-
-interface Emit {
-  (e: 'userData', value: UserProperties): void
+interface Region {
+  value: number
+  title: string
 }
-
-const emit = defineEmits<Emit>()
 
 const isFormValid = ref(false)
 const refForm = ref<VForm>()
 const fullName = ref('')
-const email = ref('')
 const phoneNumber = ref('')
-const address = ref()
-const city = ref('')
+const selectedCity = ref()
 const district = ref()
 const ward = ref()
+const cities = ref([] as Region[])
+const districts = ref([] as Region[])
+const wards = ref([] as Region[])
+const router = useRouter()
 
-const cities = ['Hồ Chí Minh', 'Bình Định', 'Bình Thuận', 'Nha Trang', 'Hà Nội', 'Hải Phòng', 'Đà Nẵng']
-const districts = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
-const wards = ['Quận 1', 'Quận 3', 'Bình Thạnh', 'Quận 12', 'Quận 10', 'Quận 8', 'Quận 9']
+const add = async () => {
+  const res = await $api('api/user/create', {
+    method: 'POST',
+    data: {
+      fullName: fullName.value,
+      phone: phoneNumber.value,
+      regeionDetailId: ward.value.value,
+    },
+
+  })
+
+  const data = res.data
+
+  console.log(data.respType === '200')
+  if (data.respType === 200)
+    router.replace('/user/list')
+}
 
 const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (valid) {
-      emit('userData', {
-        id: 0,
-        fullName: fullName.value,
-        address: address.value,
-        role: '',
-        phoneNumber: phoneNumber.value,
-        email: email.value,
-        status: '',
-        avatar: '',
-      })
+      add()
       nextTick(() => {
         refForm.value?.reset()
         refForm.value?.resetValidation()
@@ -44,6 +48,45 @@ const onSubmit = () => {
     }
   })
 }
+
+async function getRegion(parentId: number | null, regionStructureId: number) {
+  const res = await $api('/api/region/find', {
+    method: 'POST',
+    data: {
+      parentId,
+      regionStructureId,
+    },
+  })
+
+  const data = res.data.valueReponse.data
+
+  console.log(data.map((item: { id: any; fullName: any }) => ({
+    value: item.id,
+    title: item.fullName,
+  })))
+  if (regionStructureId === 1) {
+    cities.value = data.map((item: { id: any; fullName: any }) => ({
+      value: item.id,
+      title: item.fullName,
+    }))
+  }
+  if (regionStructureId === 2) {
+    districts.value = data.map((item: { id: any; fullName: any }) => ({
+      value: item.id,
+      title: item.fullName,
+    }))
+  }
+  if (regionStructureId === 3) {
+    wards.value = data.map((item: { id: any; fullName: any }) => ({
+      value: item.id,
+      title: item.fullName,
+    }))
+  }
+  console.log(districts.value)
+}
+await getRegion(null, 1)
+watch(selectedCity, () => getRegion(selectedCity.value.value, 2))
+watch(district, () => getRegion(district.value.value, 3))
 </script>
 
 <template>
@@ -75,19 +118,6 @@ const onSubmit = () => {
             />
           </VCol>
 
-          <!-- 👉 Email -->
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <AppTextField
-              v-model="email"
-              :rules="[requiredValidator, emailValidator]"
-              label="Email"
-              placeholder="sonle@email.com"
-            />
-          </VCol>
-
           <!-- 👉 Contact -->
           <VCol
             cols="12"
@@ -98,7 +128,7 @@ const onSubmit = () => {
               type="number"
               :rules="[requiredValidator, phoneNumberValidator]"
               label="Số điện thoại"
-              placeholder="+1-541-754-3010"
+              placeholder="0347829036"
             />
           </VCol>
 
@@ -108,7 +138,7 @@ const onSubmit = () => {
             md="6"
           >
             <AppCombobox
-              v-model="city"
+              v-model="selectedCity"
               :items="cities"
               label="Tỉnh/Thành phố"
               :rules="[requiredValidator]"
