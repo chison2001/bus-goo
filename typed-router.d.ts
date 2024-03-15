@@ -56,6 +56,7 @@ declare module 'vue-router/auto/routes' {
     'reservation-list': RouteRecordInfo<'reservation-list', '/reservation/list', Record<never, never>, Record<never, never>>,
     'route-add': RouteRecordInfo<'route-add', '/route/add', Record<never, never>, Record<never, never>>,
     'route-list': RouteRecordInfo<'route-list', '/route/list', Record<never, never>, Record<never, never>>,
+    'schedule-add': RouteRecordInfo<'schedule-add', '/schedule/add', Record<never, never>, Record<never, never>>,
     'schedule-list': RouteRecordInfo<'schedule-list', '/schedule/list', Record<never, never>, Record<never, never>>,
     'second-page': RouteRecordInfo<'second-page', '/second-page', Record<never, never>, Record<never, never>>,
     'user-add': RouteRecordInfo<'user-add', '/user/add', Record<never, never>, Record<never, never>>,

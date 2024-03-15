@@ -16,16 +16,16 @@ const orderBy = ref()
 // Update data table options
 const updateOptions = (options: any) => {
   page.value = options.page
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
+  sortBy.value = options.sortBy[0]?.order
+  orderBy.value = options.sortBy[0]?.key
 }
 
 // Headers
 const headers = [
-  { title: 'CODE', key: 'code' },
-  { title: 'Người dùng', key: 'user' },
+  { title: 'CODE', key: 'userCode' },
+  { title: 'Người dùng', key: 'fullName' },
   { title: 'Địa chỉ', key: 'address' },
-  { title: 'Số điện thoại', key: 'phoneNumber' },
+  { title: 'Số điện thoại', key: 'phone' },
   { title: 'Trạng thái', key: 'status' },
   { title: 'Hành động', key: 'actions', sortable: false },
 ]

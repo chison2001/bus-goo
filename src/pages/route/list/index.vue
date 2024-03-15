@@ -26,8 +26,8 @@ const cities = ref([] as Region[])
 // Update data table options
 const updateOptions = (options: any) => {
   page.value = options.page
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
+  sortBy.value = options.sortBy[0]?.order
+  orderBy.value = options.sortBy[0]?.key
 }
 
 // 👉 headers
