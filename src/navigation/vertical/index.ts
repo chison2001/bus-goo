@@ -38,7 +38,7 @@ export default [
   },
   {
     title: 'Lịch trình',
-    to: { name: 'second-page' },
+    to: { name: 'schedule-list' },
     icon: { icon: 'tabler-alarm' },
   },
   { heading: 'Quản lí giao dịch' },

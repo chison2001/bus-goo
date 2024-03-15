@@ -39,6 +39,7 @@ const onSubmit = () => {
       add()
       nextTick(() => {
         refForm.value?.reset()
+        transferTime.value = ''
         refForm.value?.resetValidation()
       })
     }
@@ -68,7 +69,7 @@ await getRegion(null, 1)
   <VCard class="pa-sm-8 pa-5">
     <VCardItem class="text-center">
       <VCardTitle class="text-h3 mb-3">
-        Thêm thông tin người dùng
+        Thêm tuyến đường
       </VCardTitle>
     </VCardItem>
 

@@ -61,8 +61,8 @@ const resolveUserStatusVariant = (stat: number) => {
 }
 
 // 👉 Delete user
-const deleteUser = async (id: number) => {
-  await $api(`/apps/users/${id}`, {
+const deleteUser = async (userId: number) => {
+  await $api(`/api/user/delete/${userId}`, {
     method: 'DELETE',
   })
 
@@ -104,7 +104,7 @@ const deleteUser = async (id: number) => {
           <div class="user-list-filter">
             <AppSelect
               v-model="selectedStatus"
-              placeholder="Select Status"
+              placeholder="Trạng thái"
               clearable
               clear-icon="tabler-x"
               single-line

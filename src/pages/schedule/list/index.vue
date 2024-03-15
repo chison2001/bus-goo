@@ -4,8 +4,8 @@ import { VCardText } from 'vuetify/lib/components/index.mjs'
 import $api from '@/utils/api'
 import { paginationMeta } from '@api-utils/paginationMeta'
 
-const searchQuery = ref('')
 const selectedStatus = ref('')
+const selectedDepartureDate = ref('')
 
 interface Region {
   value: number
@@ -33,9 +33,11 @@ const updateOptions = (options: any) => {
 // 👉 headers
 const headers = [
   { title: 'Code', key: 'code' },
-  { title: 'Điểm khởi hành', key: 'from.fullName' },
-  { title: 'Điểm đến', key: 'to.fullName' },
-  { title: 'Thời gian chạy', key: 'transferTime' },
+  { title: 'Tuyến đường', key: 'routeDescription' },
+  { title: 'Tên xe', key: 'busName' },
+  { title: 'Loại xe', key: 'busType' },
+  { title: 'Thời gian chạy', key: 'timeTransfer' },
+  { title: 'Thời gian khởi hành', key: 'timeStarted' },
   { title: 'Trạng thái', key: 'status' },
   { title: 'Hành động', key: 'actions', sortable: false },
 ]
@@ -46,9 +48,10 @@ const status = [
 ]
 
 // 👉 Fetch Invoices
-const { data: routeData, execute: fetchRoutes } = await useApi<any>(createUrl('api/route/find', {
+const { data: routeData, execute: fetchRoutes } = await useApi<any>(createUrl('api/timetable/find', {
   query: {
     status: selectedStatus,
+    departureDate: selectedDepartureDate,
     fromId: from,
     toId: to,
     itemPerPage,
@@ -102,6 +105,12 @@ function formatTime(timeString: string) {
 
   return time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
+
+function formatDateTime(DateTimeString: string) {
+  const time = new Date(DateTimeString)
+
+  return `${time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${time.toLocaleDateString()}`
+}
 </script>
 
 <template>
@@ -116,7 +125,7 @@ function formatTime(timeString: string) {
           <!-- 👉 Status filter -->
           <VCol
             cols="12"
-            md="4"
+            md="3"
           >
             <AppSelect
               v-model="selectedStatus"
@@ -127,24 +136,36 @@ function formatTime(timeString: string) {
               :items="status"
             />
           </VCol>
-
-          <!-- 👉 DateRange filter -->
+          <!-- 👉 Status filter -->
           <VCol
             cols="12"
-            md="4"
+            md="3"
           >
-            <AppCombobox
-              v-model="selectedFrom"
-              :items="cities"
-              label="Điểm khởi hành"
-              item-value="value"
+            <AppDateTimePicker
+              v-model="selectedDepartureDate"
+              label="Chọn thời gian khởi hành"
+              :config="{ enableTime: true, dateFormat: 'Y-m-dTH:i' }"
+              clearable
+              clear-icon="tabler-x"
             />
           </VCol>
 
           <!-- 👉 DateRange filter -->
           <VCol
             cols="12"
-            md="4"
+            md="3"
+          >
+            <AppCombobox
+              v-model="selectedFrom"
+              :items="cities"
+              label="Điểm khởi hành"
+            />
+          </VCol>
+
+          <!-- 👉 DateRange filter -->
+          <VCol
+            cols="12"
+            md="3"
           >
             <AppCombobox
               v-model="selectedTo"
@@ -176,32 +197,12 @@ function formatTime(timeString: string) {
         <VSpacer />
 
         <div class="d-flex align-center flex-wrap gap-4">
-          <!-- 👉 Search  -->
-          <div class="invoice-list-filter">
-            <AppTextField
-              v-model="searchQuery"
-              placeholder="Tìm kiếm"
-              density="compact"
-            />
-          </div>
-
-          <!-- 👉 Select status -->
-          <div class="invoice-list-filter">
-            <AppSelect
-              v-model="selectedStatus"
-              placeholder="Chọn trạng thái"
-              clearable
-              clear-icon="tabler-x"
-              single-line
-              :items="status"
-            />
-          </div>
           <!-- 👉 Create invoice -->
           <VBtn
             prepend-icon="tabler-plus"
             to="add"
           >
-            Thêm tuyến đường
+            Thêm lịch trình
           </VBtn>
         </div>
       </VCardText>
@@ -223,19 +224,24 @@ function formatTime(timeString: string) {
           {{ item.code }}
         </template>
 
-        <!-- Total -->
-        <template #item.from.fullName="{ item }">
-          {{ item.from.fullName }}
+        <template #item.routeDescription="{ item }">
+          {{ item.routeDescription }}
         </template>
 
-        <!-- Order Date -->
-        <template #item.to.fullName="{ item }">
-          {{ item.to.fullName }}
+        <template #item.busName="{ item }">
+          {{ item.busName }}
         </template>
 
-        <!-- Start Date -->
-        <template #item.transferTime="{ item }">
-          {{ formatTime(item.transferTime) }}
+        <template #item.busType="{ item }">
+          {{ item.busType }}
+        </template>
+
+        <template #item.timeTransfer="{ item }">
+          {{ formatTime(item.timeTransfer) }}
+        </template>
+
+        <template #item.timeStarted="{ item }">
+          {{ formatDateTime(item.timeStarted) }}
         </template>
 
         <!-- Status -->

@@ -43,6 +43,8 @@ const label = computed(() => useAttrs().label as string | undefined)
           maxHeight: '150%',
         },
       }"
+      clearable
+      clear-icon="tabler-x"
     >
       <template
         v-for="(_, name) in $slots"
