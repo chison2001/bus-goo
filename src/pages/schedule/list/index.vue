@@ -77,13 +77,13 @@ watch(selectedTo, () => to.value = selectedTo.value?.value)
 
 // 👉 Delete Invoice
 const deleteInvoice = async (id: number) => {
-  await $api(`/apps/invoice/${id}`, { method: 'DELETE' })
+  await $api(`api/timetable/delete/${id}`, { method: 'DELETE' })
 
   fetchRoutes()
 }
 
 async function getRegion(parentId: number | null, regionStructureId: number) {
-  const res = await $api('/api/region/find', {
+  const res = await $api('api/region/find', {
     method: 'POST',
     data: {
       parentId,

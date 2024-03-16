@@ -61,11 +61,8 @@ const resolveUserStatusVariant = (stat: number) => {
 
 // 👉 Delete user
 const deletePrice = async (id: number) => {
-  await $api('api/price/delete', {
-    method: 'GET',
-    params: {
-      priceId: id,
-    },
+  await $api(`api/price/delete/${id}`, {
+    method: 'DELETE',
   })
 
   // refetch User

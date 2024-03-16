@@ -2,7 +2,7 @@ export interface PriceDetail {
   id: number
   priceDetailCode: string
   priceValue: string
-  status: string
+  status: number
   typeBus: string
   route: string
 }

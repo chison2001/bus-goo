@@ -1,114 +1,68 @@
 <script setup lang="ts">
 import { VForm } from 'vuetify/components/VForm'
+import $api from '@/utils/api'
 import type { PriceDetail } from '@db/apps/price/types'
 
+interface Item {
+  value: number
+  title: string
+}
 const isFormValid = ref(false)
 const refForm = ref<VForm>()
 const isFormDetailValid = ref(false)
 const refFormDetail = ref<VForm>()
-const statusDetail = ref('Active')
 const newPriceDetails = ref([] as PriceDetail[])
-const routes = ['Hồ Chí Minh - Đà Lạt', 'Hồ Chí Minh - Nha Trang', 'Hồ Chí Minh - Bình Thuận', 'Hồ Chí Minh - Hà Nội', 'Hồ Chí Minh - Hải Phòng', 'Hồ Chí Minh - Đà Nẵng']
-const typeBuses = ['Ghế', 'Giường', 'Limousine']
-const boxRoute = ref('')
-const boxTypeBus = ref('')
-const priceValue = ref('')
+const routes = ref([] as Item[])
+const router = useRouter()
+const boxRoute = ref()
+const boxTypeBus = ref()
+const priceValue = ref()
+
+const typeBuses = [{
+  value: 1,
+  title: 'Ghế',
+},
+{
+  value: 2,
+  title: 'Giường',
+},
+{
+  value: 3,
+  title: 'Limousine',
+}]
 
 const route = useRoute('price-edit-id')
 
-const { data: price } = await useApi<any>(`/apps/prices/${route.params.id}`)
+const response = await $api('api/price/get', {
+  method: 'GET',
+  params: { priceId: route.params.id },
+})
 
-newPriceDetails.value = price.value.priceDetails
-
+const price = computed(() => response.data.valueReponse.data)
+const comparisonDate = new Date(price.value.fromDate)
+const currentDate = new Date()
+const isLessThanCurrentDate = comparisonDate < currentDate
+const checkStatus = price.value.status === 0
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const editedIndex = ref(-1)
+let deletedId = -1
 
-let editedDetail: PriceDetail = {
-  id: 0,
-  priceDetailCode: '',
-  priceValue: '',
-  status: '',
-  typeBus: '',
-  route: '',
-}
-
-const defaultDetail: PriceDetail = {
-  id: 0,
-  priceDetailCode: '',
-  priceValue: '',
-  status: '',
-  typeBus: '',
-  route: '',
-}
-
-const onSubmit = () => {
-  refForm.value?.validate().then(({ valid }) => {
-    if (valid) {
-      console.log(price.value)
-      nextTick(() => {
-        refForm.value?.reset()
-        refForm.value?.resetValidation()
-      })
-    }
-  })
-}
-
-function editDetail(item: PriceDetail) {
-  editedIndex.value = newPriceDetails.value.indexOf(item)
-  statusDetail.value = item.status
-  boxTypeBus.value = item.typeBus
-  boxRoute.value = item.route
-  priceValue.value = item.priceValue
-  editedDetail = { ...item } // Spread operator for deep copy
-  dialog.value = true
-}
-
-function deleteDetail(item: PriceDetail) {
-  editedIndex.value = newPriceDetails.value.indexOf(item)
-  editedDetail = { ...item }
+function deleteDetail(id: number) {
+  deletedId = id
   dialogDelete.value = true
 }
 
 function deleteDetailConfirm() {
-  newPriceDetails.value.splice(editedIndex.value, 1)
+  deleteDetailAPI(deletedId)
   closeDelete()
 }
 
 function close() {
   dialog.value = false
-  nextTick(() => {
-    editedDetail = { ...defaultDetail }
-    editedIndex.value = -1
-  })
 }
 
 function closeDelete() {
   dialogDelete.value = false
-  nextTick(() => {
-    editedDetail = { ...defaultDetail }
-    editedIndex.value = -1
-  })
-}
-
-function save() {
-  refFormDetail.value?.validate().then(({ valid }) => {
-    if (valid) {
-      editedDetail.status = statusDetail.value
-      editedDetail.typeBus = boxTypeBus.value
-      editedDetail.route = boxRoute.value
-      editedDetail.priceValue = priceValue.value
-      if (editedIndex.value > -1)
-        Object.assign(newPriceDetails.value[editedIndex.value], editedDetail)
-      else
-        newPriceDetails.value.push(editedDetail)
-      close()
-      nextTick(() => {
-        refFormDetail.value?.reset()
-        refFormDetail.value?.resetValidation()
-      })
-    }
-  })
 }
 
 watch(dialog, val => {
@@ -120,6 +74,111 @@ watch(dialogDelete, val => {
   if (!val)
     closeDelete()
 })
+
+async function getRoutes() {
+  const res = await $api('api/route/find-all', {
+    method: 'GET',
+
+  })
+
+  const data = res.data.valueReponse.data
+
+  routes.value = data.map((item: { id: any; to: { fullName: any }; from: { fullName: any } }) => ({
+    value: item.id,
+    title: `${item.from.fullName} - ${item.to.fullName}`,
+  }))
+}
+await getRoutes()
+
+async function getDetails() {
+  const res = await $api('api/price/find-detail', {
+    method: 'GET',
+    params: {
+      priceId: price.value.id,
+    },
+  })
+
+  const data = res.data.valueReponse.data
+
+  newPriceDetails.value = data.map((item: any) => ({
+    id: item.id,
+    priceDetailCode: item.detailCode,
+    priceValue: item.value,
+    status: item.status,
+    typeBus: item.typeBus.name,
+    route: `${item.route.from.fullName} - ${item.route.to.fullName}`,
+  }))
+  console.log(newPriceDetails.value)
+}
+await getDetails()
+
+async function saveDetail() {
+  await $api('api/price/create-detail', {
+    method: 'POST',
+    data: {
+      typeBusId: boxTypeBus.value.value,
+      routeId: boxRoute.value.value,
+      priceValue: priceValue.value,
+      priceId: price.value.id,
+    },
+
+  })
+  await getDetails()
+}
+
+async function deleteDetailAPI(id: number) {
+  await $api(`api/price/delete-price-detail/${id}`, {
+    method: 'DELETE',
+  })
+  await getDetails()
+}
+
+function save() {
+  refFormDetail.value?.validate().then(({ valid }) => {
+    if (valid) {
+      saveDetail()
+      close()
+      nextTick(() => {
+        refFormDetail.value?.reset()
+        refFormDetail.value?.resetValidation()
+      })
+    }
+  })
+}
+
+async function savePrice() {
+  const res = await $api('api/price/update', {
+    method: 'POST',
+    data: {
+      priceDescription: price.value.description,
+      fromDate: price.value.fromDate,
+      toDate: price.value.toDate,
+      priceId: price.value.id,
+    },
+
+  })
+
+  const data = res.data
+
+  console.log(data.respType === '200')
+  if (data.respType === 200)
+    router.replace('/price/list')
+}
+
+function onSubmit() {
+  refForm.value?.validate().then(({ valid }) => {
+    if (valid)
+      savePrice()
+  })
+}
+
+const resolveUserStatusVariant = (stat: number) => {
+  const statLowerCase = stat
+  if (statLowerCase === 1)
+    return { color: 'success', value: 'active' }
+  if (statLowerCase === 0)
+    return { color: 'secondary', value: 'inactive' }
+}
 </script>
 
 <template>
@@ -138,41 +197,29 @@ watch(dialogDelete, val => {
         @submit.prevent="onSubmit"
       >
         <VRow>
-          <!-- 👉 Full name -->
+          <!-- 👉 From date -->
           <VCol
             cols="12"
             md="6"
           >
             <AppDateTimePicker
               v-model="price.fromDate"
+              :disabled="isLessThanCurrentDate || checkStatus"
               :rules="[requiredValidator]"
               label="Ngày có hiệu lực"
             />
           </VCol>
 
-          <!-- 👉 Email -->
+          <!-- 👉 To date -->
           <VCol
             cols="12"
             md="6"
           >
             <AppDateTimePicker
               v-model="price.toDate"
+              :disabled="isLessThanCurrentDate || checkStatus"
               :rules="[requiredValidator]"
               label="Ngày hết hiệu lực"
-            />
-          </VCol>
-
-          <!-- 👉 Status -->
-          <VCol
-            cols="12"
-            md="6"
-          >
-            <AppSelect
-              v-model="price.status"
-              label="Chọn trạng thái"
-              placeholder="Chọn trạng thái"
-              :rules="[requiredValidator]"
-              :items="[{ title: 'Active', value: 'Active' }, { title: 'Inactive', value: 'Inactive' }]"
             />
           </VCol>
 
@@ -183,20 +230,17 @@ watch(dialogDelete, val => {
           >
             <AppTextarea
               v-model="price.description"
+              :disabled="isLessThanCurrentDate || checkStatus"
               rows="1"
               label="Ghi chú"
-              :items="['Admin', 'Manager', 'Staff', 'Customer']"
             />
           </VCol>
           <VCardText>
-            <VBtn @click="dialog = true">
-              Thêm chi tiết
-            </VBtn>
             <VTable>
               <thead>
                 <tr>
                   <th class="text-center">
-                    STT
+                    id
                   </th>
                   <th class="text-center">
                     Giá trị đơn giá
@@ -211,17 +255,22 @@ watch(dialogDelete, val => {
                     Trạng thái
                   </th>
                   <th class="text-center">
-                    Hành động
+                    <VIcon
+                      class="me-2"
+                      size="small"
+                      icon="tabler-plus"
+                      @click="dialog = true"
+                    />
                   </th>
                 </tr>
               </thead>
               <tbody>
                 <tr
-                  v-for="(item, index) in newPriceDetails"
-                  :key="index"
+                  v-for="item in newPriceDetails"
+                  :key="item.id"
                 >
                   <td class="text-center">
-                    {{ index + 1 }}
+                    {{ item.id }}
                   </td>
                   <td class="text-center">
                     {{ item.priceValue }}
@@ -233,19 +282,20 @@ watch(dialogDelete, val => {
                     {{ item.route }}
                   </td>
                   <td class="text-center">
-                    {{ item.status }}
+                    <VChip
+                      :color="resolveUserStatusVariant(item.status)?.color"
+                      size="small"
+                      label
+                      class="text-capitalize"
+                    >
+                      {{ resolveUserStatusVariant(item.status)?.value }}
+                    </VChip>
                   </td>
                   <td class="text-center">
                     <VIcon
-                      class="me-2"
-                      size="small"
-                      icon="tabler-edit"
-                      @click="editDetail(item)"
-                    />
-                    <VIcon
                       size="small"
                       icon="tabler-trash"
-                      @click="deleteDetail(item)"
+                      @click="deleteDetail(item.id)"
                     />
                   </td>
                 </tr>
@@ -260,6 +310,7 @@ watch(dialogDelete, val => {
             <VBtn
               type="submit"
               class="me-3"
+              :disabled="isLessThanCurrentDate || checkStatus"
             >
               Cập nhật
             </VBtn>
@@ -269,7 +320,7 @@ watch(dialogDelete, val => {
               color="secondary"
               to="/price/list"
             >
-              Huỷ
+              Trở lại
             </VBtn>
           </VCol>
         </VRow>
@@ -280,7 +331,7 @@ watch(dialogDelete, val => {
       >
         <VCard>
           <VCardTitle>
-            <span class="text-h5">{{ editedIndex === -1 ? 'Thêm chi tiết' : 'Chỉnh sửa chi tiết' }}</span>
+            <span class="text-h5">Thêm chi tiết</span>
           </VCardTitle>
 
           <VCardText>
@@ -297,6 +348,7 @@ watch(dialogDelete, val => {
                   <AppTextField
                     v-model="priceValue"
                     label="Giá trị đơn giá"
+                    :disabled="isLessThanCurrentDate || checkStatus"
                     :rules="[requiredValidator]"
                   />
                 </VCol>
@@ -308,6 +360,7 @@ watch(dialogDelete, val => {
                   <AppCombobox
                     v-model="boxRoute"
                     :items="routes"
+                    :disabled="isLessThanCurrentDate || checkStatus"
                     label="Chuyến xe"
                     :rules="[requiredValidator]"
                   />
@@ -320,20 +373,9 @@ watch(dialogDelete, val => {
                   <AppCombobox
                     v-model="boxTypeBus"
                     :items="typeBuses"
+                    :disabled="isLessThanCurrentDate || checkStatus"
                     label="Loại xe"
                     :rules="[requiredValidator]"
-                  />
-                </VCol>
-                <VCol
-                  cols="12"
-                  md="6"
-                  mb="12"
-                >
-                  <AppSelect
-                    v-model="statusDetail"
-                    label="Trạng thái"
-                    :rules="[requiredValidator]"
-                    :items="[{ title: 'Active', value: 'Active' }, { title: 'Inactive', value: 'Inactive' }]"
                   />
                 </VCol>
               </VRow>
@@ -350,6 +392,7 @@ watch(dialogDelete, val => {
                   color="blue-darken-1"
                   variant="text"
                   type="submit"
+                  :disabled="isLessThanCurrentDate || checkStatus"
                   @click="save"
                 >
                   Lưu chi tiết
