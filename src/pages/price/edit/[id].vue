@@ -108,7 +108,6 @@ async function getDetails() {
     typeBus: item.typeBus.name,
     route: `${item.route.from.fullName} - ${item.route.to.fullName}`,
   }))
-  console.log(newPriceDetails.value)
 }
 await getDetails()
 
@@ -137,6 +136,7 @@ function save() {
   refFormDetail.value?.validate().then(({ valid }) => {
     if (valid) {
       saveDetail()
+      location.reload()
       close()
       nextTick(() => {
         refFormDetail.value?.reset()
@@ -226,12 +226,12 @@ const resolveUserStatusVariant = (stat: number) => {
           <!-- 👉 Role -->
           <VCol
             cols="12"
-            md="6"
+            md="12"
           >
             <AppTextarea
               v-model="price.description"
               :disabled="isLessThanCurrentDate || checkStatus"
-              rows="1"
+              rows="2"
               label="Ghi chú"
             />
           </VCol>

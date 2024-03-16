@@ -10,9 +10,10 @@ export interface PromoLine {
   id: number
   code: string
   promoName: string
-  promoType: string
+  promoType: number
   fromDate: string
   toDate: string
+  status: number
   promoDetails: PromoDetail[]
 }
 
@@ -21,7 +22,7 @@ export interface Promotion {
   code: string
   startDate: string
   toDate: string
-  status: string
+  status: number
   description: string
   name: string
   promoLines: PromoLine[]
