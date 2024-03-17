@@ -1,1 +1,0 @@
-import{_ as n}from"./_plugin-vue_export-helper-c27b6911.js";import{o as c,c as e}from"./index-8f404a99.js";const o={};function r(t,a){return c(),e("div",null," xin chào đến với trang chủ admin ")}const _=n(o,[["render",r]]);export{_ as default};
