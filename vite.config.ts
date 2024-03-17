@@ -12,6 +12,7 @@ import vuetify from 'vite-plugin-vuetify'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/bus-goo/',
   server: {
     port: 3000,
   },
@@ -103,5 +104,13 @@ export default defineConfig({
     entries: [
       './src/**/*.vue',
     ],
+  },
+  experimental: {
+    renderBuiltUrl(filename: string, { hostType }: { hostType: 'js' | 'css' | 'html' }) {
+      if (hostType === 'js')
+        return { runtime: `window.__toCdnUrl(${JSON.stringify(filename)})` }
+      else
+        return { relative: true }
+    },
   },
 })
