@@ -33,7 +33,7 @@ export const useApi = createFetch({
         parsedData = destr(data)
       }
       catch (error) {
-        console.error(error)
+        console.log(error)
       }
 
       return { data: parsedData, response }

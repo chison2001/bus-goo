@@ -1,3 +1,4 @@
+<!-- eslint-disable @typescript-eslint/no-unused-vars -->
 <script setup lang="ts">
 import { VForm } from 'vuetify/components/VForm'
 import { VDivider } from 'vuetify/lib/components/index.mjs'
@@ -101,6 +102,7 @@ await getLines()
 const dialogLine = ref(false)
 const dialogLineDelete = ref(false)
 let editedLineIndex: number | null = null
+// eslint-disable-next-line unused-imports/no-unused-vars
 let editedDetailIndex: number | null = null
 let deletedId = -1
 
