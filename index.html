@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/assets/logo-svg-598d0767.svg"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BusGoo - Luôn đồng hành cùng bạn trên mọi nẻo đường</title>
+  <link rel="stylesheet" type="text/css" href="/loader.css" />
+  <script type="module" crossorigin src="/assets/index-8f404a99.js"></script>
+  <link rel="stylesheet" href="/assets/index-a4f71ac5.css">
+</head>
+
+<body>
+  <div id="app">
+    <div id="loading-bg">
+      <div class="loading-logo">
+        <!-- SVG Logo -->
+        <img src="/assets/logo-lg-804597bc.jpg" />
+
+      </div>
+      <div class=" loading">
+        <div class="effect-1 effects"></div>
+        <div class="effect-2 effects"></div>
+        <div class="effect-3 effects"></div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const loaderColor = localStorage.getItem('vuexy-initial-loader-bg') || '#FFFFFF'
+    const primaryColor = localStorage.getItem('vuexy-initial-loader-color') || '#7367F0'
+
+    if (loaderColor)
+      document.documentElement.style.setProperty('--initial-loader-bg', loaderColor)
+
+    if (primaryColor)
+      document.documentElement.style.setProperty('--initial-loader-color', primaryColor)
+    </script>
+  </body>
+</html>
