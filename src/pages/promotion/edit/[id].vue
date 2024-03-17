@@ -41,13 +41,16 @@ const route = useRoute('promotion-edit-id')
 const checkPromoType = ref(true)
 
 watch(promoTypeValue, val => {
-  if (val.value === 1) {
-    checkPromoType.value = true
-    maxdiscount.value = null
-  }
-  if (val.value === 2) {
-    checkPromoType.value = false
-    conditionApply.value = null
+  if (val !== null) {
+    console.log(val)
+    if (val.value === 1) {
+      checkPromoType.value = true
+      maxdiscount.value = null
+    }
+    if (val.value === 2) {
+      checkPromoType.value = false
+      conditionApply.value = null
+    }
   }
 })
 
