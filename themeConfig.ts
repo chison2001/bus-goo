@@ -4,7 +4,7 @@ import { defineThemeConfig } from '@core'
 import { Skins } from '@core/enums'
 
 // ❗ Logo SVG must be imported with ?raw suffix
-import logo from '@images/logo-svg.svg?raw'
+import logo from '@images/logo-svg.svg'
 
 import { AppContentLayoutNav, ContentWidth, FooterType, NavbarType } from '@layouts/enums'
 
