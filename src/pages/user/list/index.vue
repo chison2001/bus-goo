@@ -31,7 +31,7 @@ const headers = [
 ]
 
 // 👉 Fetching users
-const { data: usersData, execute: fetchUsers } = await useApi<any>(createUrl('api/user/find', {
+const { data: usersData, execute: fetchUsers } = await useApi<any>(createUrl('/api/user/find', {
   query: {
     q: searchQuery,
     status: selectedStatus,

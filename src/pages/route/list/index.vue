@@ -46,7 +46,7 @@ const status = [
 ]
 
 // 👉 Fetch Invoices
-const { data: routeData, execute: fetchRoutes } = await useApi<any>(createUrl('api/route/find', {
+const { data: routeData, execute: fetchRoutes } = await useApi<any>(createUrl('/api/route/find', {
   query: {
     status: selectedStatus,
     fromId: from,
@@ -74,13 +74,13 @@ watch(selectedTo, () => to.value = selectedTo.value?.value)
 
 // 👉 Delete Invoice
 const deleteInvoice = async (id: number) => {
-  await $api(`api/route/delete/${id}`, { method: 'DELETE' })
+  await $api(`/api/route/delete/${id}`, { method: 'DELETE' })
 
   fetchRoutes()
 }
 
 async function getRegion(parentId: number | null, regionStructureId: number) {
-  const res = await $api('api/region/find', {
+  const res = await $api('/api/region/find', {
     method: 'POST',
     data: {
       parentId,

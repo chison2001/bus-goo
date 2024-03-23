@@ -48,7 +48,7 @@ const status = [
 ]
 
 // 👉 Fetch Invoices
-const { data: routeData, execute: fetchRoutes } = await useApi<any>(createUrl('api/timetable/find', {
+const { data: scheduleDate, execute: fetchSchedules } = await useApi<any>(createUrl('api/timetable/find', {
   query: {
     status: selectedStatus,
     departureDate: selectedDepartureDate,
@@ -61,8 +61,8 @@ const { data: routeData, execute: fetchRoutes } = await useApi<any>(createUrl('a
   },
 }))
 
-const routes = computed(() => routeData.value.valueReponse.data.content)
-const totalPromotions = computed(() => routeData.value.valueReponse.data.totalElements)
+const schedules = computed(() => scheduleDate.value.valueReponse.data.content)
+const totalSchedules = computed(() => scheduleDate.value.valueReponse.data.totalElements)
 
 const resolveUserStatusVariant = (stat: number) => {
   const statLowerCase = stat
@@ -75,15 +75,15 @@ const resolveUserStatusVariant = (stat: number) => {
 watch(selectedFrom, () => from.value = selectedFrom.value?.value)
 watch(selectedTo, () => to.value = selectedTo.value?.value)
 
-// 👉 Delete Invoice
-const deleteInvoice = async (id: number) => {
-  await $api(`api/timetable/delete/${id}`, { method: 'DELETE' })
+// 👉 Delete Schedule
+const deleteSchedule = async (id: number) => {
+  await $api(`/api/timetable/delete/${id}`, { method: 'DELETE' })
 
-  fetchRoutes()
+  fetchSchedules()
 }
 
 async function getRegion(parentId: number | null, regionStructureId: number) {
-  const res = await $api('api/region/find', {
+  const res = await $api('/api/region/find', {
     method: 'POST',
     data: {
       parentId,
@@ -114,7 +114,7 @@ function formatDateTime(DateTimeString: string) {
 </script>
 
 <template>
-  <section v-if="routes">
+  <section v-if="schedules">
     <!-- 👉 Invoice Filters  -->
     <VCard
       title="Bộ lọc"
@@ -212,8 +212,8 @@ function formatDateTime(DateTimeString: string) {
       <VDataTableServer
         v-model:items-per-page="itemPerPage"
         v-model:page="page"
-        :items-length="totalPromotions"
-        :items="routes"
+        :items-length="totalSchedules"
+        :items="schedules"
         :headers="headers"
         class="text-no-wrap"
         @click:row="(item) => console.log(item)"
@@ -258,7 +258,7 @@ function formatDateTime(DateTimeString: string) {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="deleteInvoice(item.id)">
+          <IconBtn @click="deleteSchedule(item.id)">
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
@@ -273,13 +273,13 @@ function formatDateTime(DateTimeString: string) {
           <VDivider />
           <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemPerPage }, totalPromotions) }}
+              {{ paginationMeta({ page, itemPerPage }, totalSchedules) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalPromotions / itemPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalPromotions / itemPerPage)"
+              :length="Math.ceil(totalSchedules / itemPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalSchedules / itemPerPage)"
             >
               <template #prev="slotProps">
                 <VBtn

@@ -16,7 +16,7 @@ const cities = ref([] as Region[])
 const router = useRouter()
 
 const add = async () => {
-  const res = await $api('api/route/create', {
+  const res = await $api('/api/route/create', {
     method: 'POST',
     data: {
       fromId: selectedFrom.value.value,

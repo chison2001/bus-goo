@@ -20,7 +20,7 @@ const wards = ref([] as Region[])
 const router = useRouter()
 
 const add = async () => {
-  const res = await $api('api/user/create', {
+  const res = await $api('/api/user/create', {
     method: 'POST',
     data: {
       fullName: fullName.value,

@@ -36,7 +36,7 @@ const status = [
 ]
 
 // 👉 Fetching users
-const { data: pricesData, execute: fetchPrices } = await useApi<any>(createUrl('api/price/find', {
+const { data: pricesData, execute: fetchPrices } = await useApi<any>(createUrl('/api/price/find', {
   query: {
     status: selectedStatus,
     fromDate: selectedFromDate,
@@ -61,7 +61,7 @@ const resolveUserStatusVariant = (stat: number) => {
 
 // 👉 Delete user
 const deletePrice = async (id: number) => {
-  await $api(`api/price/delete/${id}`, {
+  await $api(`/api/price/delete/${id}`, {
     method: 'DELETE',
   })
 

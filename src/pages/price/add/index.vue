@@ -11,7 +11,7 @@ const description = ref('')
 const router = useRouter()
 
 const add = async () => {
-  const res = await $api('api/price/create', {
+  const res = await $api('/api/price/create', {
     method: 'POST',
     data: {
       toDate: toDate.value,

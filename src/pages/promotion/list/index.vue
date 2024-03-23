@@ -37,7 +37,7 @@ const status = [
 ]
 
 // 👉 Fetch Invoices
-const { data: promotionData, execute: fetchInvoices } = await useApi<any>(createUrl('api/promotion/find', {
+const { data: promotionData, execute: fetchInvoices } = await useApi<any>(createUrl('/api/promotion/find', {
   query: {
     q: searchQuery,
     status: selectedStatus,

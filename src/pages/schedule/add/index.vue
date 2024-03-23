@@ -17,7 +17,7 @@ const buses = ref([] as Item[])
 const router = useRouter()
 
 const add = async () => {
-  const res = await $api('api/timetable/create', {
+  const res = await $api('/api/timetable/create', {
     method: 'POST',
     data: {
       busId: selectedBus.value.value,
@@ -48,7 +48,7 @@ const onSubmit = () => {
 }
 
 async function getRoutes() {
-  const res = await $api('api/route/find-all', {
+  const res = await $api('/api/route/find-all', {
     method: 'GET',
 
   })
@@ -63,7 +63,7 @@ async function getRoutes() {
 await getRoutes()
 
 async function getBuses() {
-  const res = await $api('api/bus/find-all', {
+  const res = await $api('/api/bus/find-all', {
     method: 'GET',
 
   })

@@ -33,7 +33,7 @@ const typeBuses = [{
 
 const route = useRoute('price-edit-id')
 
-const response = await $api('api/price/get', {
+const response = await $api('/api/price/get', {
   method: 'GET',
   params: { priceId: route.params.id },
 })
@@ -76,7 +76,7 @@ watch(dialogDelete, val => {
 })
 
 async function getRoutes() {
-  const res = await $api('api/route/find-all', {
+  const res = await $api('/api/route/find-all', {
     method: 'GET',
 
   })
@@ -91,7 +91,7 @@ async function getRoutes() {
 await getRoutes()
 
 async function getDetails() {
-  const res = await $api('api/price/find-detail', {
+  const res = await $api('/api/price/find-detail', {
     method: 'GET',
     params: {
       priceId: price.value.id,
@@ -112,7 +112,7 @@ async function getDetails() {
 await getDetails()
 
 async function saveDetail() {
-  await $api('api/price/create-detail', {
+  await $api('/api/price/create-detail', {
     method: 'POST',
     data: {
       typeBusId: boxTypeBus.value.value,
@@ -126,7 +126,7 @@ async function saveDetail() {
 }
 
 async function deleteDetailAPI(id: number) {
-  await $api(`api/price/delete-price-detail/${id}`, {
+  await $api(`/api/price/delete-price-detail/${id}`, {
     method: 'DELETE',
   })
   await getDetails()
@@ -147,7 +147,7 @@ function save() {
 }
 
 async function savePrice() {
-  const res = await $api('api/price/update', {
+  const res = await $api('/api/price/update', {
     method: 'POST',
     data: {
       priceDescription: price.value.description,

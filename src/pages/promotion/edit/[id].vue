@@ -55,7 +55,7 @@ watch(promoTypeValue, val => {
   }
 })
 
-const response = await $api('api/promotion/get-by-id', {
+const response = await $api('/api/promotion/get-by-id', {
   method: 'GET',
   params: { promotionId: route.params.id },
 })
@@ -78,7 +78,7 @@ const onSubmit = () => {
 }
 
 async function getLines() {
-  const res = await $api('api/promotion/get-line', {
+  const res = await $api('/api/promotion/get-line', {
     method: 'GET',
     params: {
       promotionId: promotion.value.id,
@@ -107,7 +107,7 @@ let editedDetailIndex: number | null = null
 let deletedId = -1
 
 async function getLineByID(id: number) {
-  const res = await $api('api/promotion/get-detail', {
+  const res = await $api('/api/promotion/get-detail', {
     method: 'GET',
     params: {
       promotionLineId: id,
@@ -175,7 +175,7 @@ function closeLineDelete() {
 }
 
 async function saveLine() {
-  const res = await $api('api/promotion/create-update/promotionline', {
+  const res = await $api('/api/promotion/create-update/promotionline', {
     method: 'POST',
     data: {
       lineCode: lineCode.value,
@@ -193,7 +193,7 @@ async function saveLine() {
 }
 
 async function saveDetail() {
-  await $api('api/promotion/create-update/promotiondetail', {
+  await $api('/api/promotion/create-update/promotiondetail', {
     method: 'POST',
     data: {
       promotionLineId: editedLineIndex,
