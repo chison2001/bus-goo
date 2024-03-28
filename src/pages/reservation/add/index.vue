@@ -1,40 +1,70 @@
 <script setup lang="ts">
 import { router } from '@/plugins/1.router'
-import { database } from '@/plugins/fake-api/handlers/apps/ticket/db'
-import type { Seat } from '@/plugins/fake-api/handlers/apps/ticket/types'
+import $api from '@/utils/api'
 
-const start = ref('')
-const arrive = ref('')
+interface Region {
+  value: number
+  title: string
+}
+interface SeatOrder {
+  id: number
+  seatName: string
+  seatType: string
+  timeTableId: number
+  orderDetailId: number
+  isAvailable: boolean
+}
+interface Ticket {
+  timeTableId: number
+  timeStated: string
+  priceDetailId: number
+  priceValue: number
+  countEmptySeat: number
+  routeId: number
+  typeBusName: string
+  transferTime: string
+  fromName: string
+  toName: string
+  expanded: boolean
+  endTime: string
+  seatOrder: SeatOrder[]
+}
+
+const selectedFrom = ref('')
+const selectedTo = ref('')
 const startDateRange = ref('')
-const selectedTicket = ref('')
-const tickets = database
+const selectedTicket = ref()
+const tickets = ref([] as Ticket[])
 const selectedSeats = ref<string[]>([])
+const cities = ref([] as Region[])
 
-const handleTicketClick = (ticket: any, target: string) => {
+const handleTicketClick = (ticket: any) => {
   if (selectedTicket.value === '') {
-    selectedTicket.value = ticket.id
-    tickets.forEach(t => {
-      if (t.id === ticket.id)
-        t.expanded = target
+    selectedTicket.value = ticket.timeTableId
+    tickets.value.forEach(t => {
+      if (t.timeTableId !== ticket.timeTableId)
+        t.expanded = false
+      else
+        t.expanded = true
     })
 
     return
   }
 
-  if (ticket.id !== selectedTicket.value) {
-    tickets.forEach(t => {
-      if (t.id === ticket.id)
-        t.expanded = target
+  if (ticket.timeTableId !== selectedTicket.value) {
+    tickets.value.forEach(t => {
+      if (t.timeTableId !== ticket.timeTableId)
+        t.expanded = false
       else
-        t.expanded = ''
+        t.expanded = true
     })
-    selectedTicket.value = ticket.id
+    selectedTicket.value = ticket.timeTableId
     selectedSeats.value = []
   }
 }
 
-const getExpandedValue = (ticketId: string) => {
-  return selectedTicket.value === ticketId ? 'selectedSeat' : undefined
+const getExpandedValue = (ticket: any) => {
+  return selectedTicket.value === ticket.timeTableId ? 'selectedSeat' : undefined
 }
 
 const getColor = (isSelected: any, disabled: any) => {
@@ -47,25 +77,65 @@ const getColor = (isSelected: any, disabled: any) => {
     return '#039BE5'
 }
 
-function handleOnClickSeat(chair: Seat) {
-  // Kiểm tra xem ghế đã được chọn trước đó chưa
-  const index = selectedSeats.value.indexOf(chair.location)
+function handleOnClickSeat(chair: SeatOrder) {
+  const index = selectedSeats.value.indexOf(chair.seatName)
 
-  // Nếu ghế chưa được chọn trước đó, thêm vào mảng selectedSeats
-  if (index === -1) {
-    selectedSeats.value.push(chair.location)
-  }
-  else {
-    // Nếu ghế đã được chọn trước đó, xoá khỏi mảng selectedSeats
+  if (index === -1)
+    selectedSeats.value.push(chair.seatName)
+
+  else
     selectedSeats.value.splice(index, 1)
-  }
+
   selectedSeats.value.sort()
 }
 
-function handleRedirectConfirmPage() {
-  router.push({
-    name: 'reservation-add-confirm',
+async function getRegion(parentId: number | null, regionStructureId: number) {
+  const res = await $api('/api/region/find', {
+    method: 'POST',
+    data: {
+      parentId,
+      regionStructureId,
+    },
   })
+
+  const data = res.data.valueReponse.data
+
+  cities.value = data.map((item: { id: any; fullName: any }) => ({
+    value: item.id,
+    title: item.fullName,
+  }))
+}
+await getRegion(null, 1)
+
+function handleRedirectConfirmPage(id: number) {
+  router.push({
+    name: 'reservation-add-confirm', query: { seatOrders: JSON.stringify(selectedSeats.value), id },
+  })
+}
+
+async function searchTicket() {
+  const res = await $api('/api/bustrip/get', {
+    method: 'GET',
+    params: {
+      fromId: selectedFrom.value.value,
+      toId: selectedTo.value.value,
+      timeStarted: startDateRange.value,
+    },
+  })
+
+  const { respType, valueReponse } = res.data
+  if (respType === 200)
+    tickets.value = valueReponse.data
+}
+function formatToTime(dateTimeString: any) {
+  const date = new Date(dateTimeString)
+
+  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
+}
+function formatTime(timeString: any) {
+  const [hours, minutes] = timeString.split(':')
+
+  return `${hours}:${minutes}`
 }
 </script>
 
@@ -82,10 +152,10 @@ function handleRedirectConfirmPage() {
             cols="12"
             md="3"
           >
-            <AppTextField
-              v-model="start"
+            <AppCombobox
+              v-model="selectedFrom"
+              :items="cities"
               label="Điểm đi"
-              placeholder="Hồ Chí Minh"
             />
           </VCol>
 
@@ -94,10 +164,10 @@ function handleRedirectConfirmPage() {
             cols="12"
             md="3"
           >
-            <AppTextField
-              v-model="arrive"
+            <AppCombobox
+              v-model="selectedTo"
+              :items="cities"
               label="Điểm đến"
-              placeholder="Đà Lạt"
             />
           </VCol>
 
@@ -122,6 +192,7 @@ function handleRedirectConfirmPage() {
             <VBtn
               type="submit"
               class="me-3 px-10"
+              @click="searchTicket"
             >
               Tìm kiếm
             </VBtn>
@@ -190,9 +261,9 @@ function handleRedirectConfirmPage() {
           <VList lines="three">
             <template
               v-for="(ticket, index) of tickets"
-              :key="ticket.id"
+              :key="ticket.timeTableId"
             >
-              <VListItem @click="handleTicketClick(ticket, 'selectedSeat')">
+              <VListItem>
                 <VCard>
                   <VRow>
                     <VCol
@@ -205,7 +276,7 @@ function handleRedirectConfirmPage() {
                           lg="3"
                         >
                           <VSheet class="text-h3 text-center ">
-                            {{ ticket.departureTime }}
+                            {{ formatToTime(ticket.timeStated) }}
                           </VSheet>
                         </VCol>
                         <VCol
@@ -218,7 +289,7 @@ function handleRedirectConfirmPage() {
                             class="me-2"
                           />
                           <VDivider :thickness="3" />
-                          <span class="px-2">14:30</span>
+                          <span class="px-2">{{ formatTime(ticket.transferTime) }}</span>
                           <VDivider :thickness="3" />
                           <VIcon
                             icon="tabler-map-pin-filled"
@@ -230,7 +301,7 @@ function handleRedirectConfirmPage() {
                           lg="3"
                         >
                           <VSheet class="text-h3 text-center ">
-                            {{ ticket.arrivalTime }}
+                            {{ formatToTime(ticket.endTime) }}
                           </VSheet>
                         </VCol>
                       </VRow>
@@ -240,7 +311,7 @@ function handleRedirectConfirmPage() {
                           lg="3"
                         >
                           <VSheet class="text-h5 text-center ">
-                            {{ ticket.departure }}
+                            {{ ticket.fromName }}
                           </VSheet>
                         </VCol>
                         <VSpacer />
@@ -249,7 +320,7 @@ function handleRedirectConfirmPage() {
                           lg="3"
                         >
                           <VSheet class="text-h5 text-center ">
-                            {{ ticket.destination }}
+                            {{ ticket.toName }}
                           </VSheet>
                         </VCol>
                       </VRow>
@@ -264,7 +335,7 @@ function handleRedirectConfirmPage() {
                           lg="6"
                         >
                           <VSheet class="text-h5 text-center ">
-                            {{ ticket.busType }}
+                            {{ ticket.typeBusName }}
                           </VSheet>
                         </VCol>
                         <VCol
@@ -272,7 +343,7 @@ function handleRedirectConfirmPage() {
                           lg="6"
                         >
                           <VSheet class="text-h6 text-center ">
-                            {{ ticket.emptySeat }}
+                            {{ ticket.countEmptySeat }} chỗ trống
                           </VSheet>
                         </VCol>
                       </VRow>
@@ -281,7 +352,7 @@ function handleRedirectConfirmPage() {
                         lg="12"
                       >
                         <VSheet class="text-h4 text-center text-error">
-                          {{ ticket.price }} vnd
+                          {{ ticket.priceValue }} vnd
                         </VSheet>
                       </VCol>
                     </VCol>
@@ -293,9 +364,11 @@ function handleRedirectConfirmPage() {
                       md="12"
                       sm="12"
                     >
-                      <VExpansionPanels :model-value="ticket.expanded">
-                        <VExpansionPanel :value="getExpandedValue(ticket.id)">
-                          <VExpansionPanelTitle>Chọn ghế</VExpansionPanelTitle>
+                      <VExpansionPanels v-model="ticket.expanded">
+                        <VExpansionPanel :value="getExpandedValue(ticket)">
+                          <VExpansionPanelTitle @click="handleTicketClick(ticket)">
+                            Chọn ghế
+                          </VExpansionPanelTitle>
                           <VExpansionPanelText>
                             <VRow>
                               <VCol
@@ -352,14 +425,14 @@ function handleRedirectConfirmPage() {
                                         </VSheet>
                                       </VCol>
                                       <VCol
-                                        v-for="(chair, i) in ticket.downFloorSeat"
+                                        v-for="(chair, i) in ticket.seatOrder.filter((seat: SeatOrder) => seat.seatType === 'D')"
                                         :key="i"
                                         cols="12"
                                         md="4"
                                       >
                                         <VItem
                                           v-slot="{
-                                            toggle = () => {}, isSelected,
+                                            toggle = () => {}, isSelected = selectedSeats.value.includes(chair.seatName),
                                           }"
                                         >
                                           <VCard
@@ -372,7 +445,7 @@ function handleRedirectConfirmPage() {
                                           >
                                             <VScrollYTransition>
                                               <div class="text-h5 flex-grow-1 text-center">
-                                                {{ chair.location }}
+                                                {{ chair.seatName }}
                                               </div>
                                             </VScrollYTransition>
                                           </VCard>
@@ -399,7 +472,7 @@ function handleRedirectConfirmPage() {
                                         </VSheet>
                                       </VCol>
                                       <VCol
-                                        v-for="(chair, i) in ticket.upFloorSeat"
+                                        v-for="(chair, i) in ticket.seatOrder.filter((seat: SeatOrder) => seat.seatType === 'T')"
                                         :key="i"
                                         cols="12"
                                         md="4"
@@ -419,7 +492,7 @@ function handleRedirectConfirmPage() {
                                           >
                                             <VScrollYTransition>
                                               <div class="text-h5 flex-grow-1 text-center">
-                                                {{ chair.location }}
+                                                {{ chair.seatName }}
                                               </div>
                                             </VScrollYTransition>
                                           </VCard>
@@ -455,14 +528,14 @@ function handleRedirectConfirmPage() {
                                   Tổng tiền
                                 </VSheet>
                                 <VSheet class="text-h5 text-center text-primary">
-                                  {{ selectedSeats.length * Number(ticket.price) }} vnd
+                                  {{ selectedSeats.length * Number(ticket.priceValue) }} vnd
                                 </VSheet>
                               </VCol>
                               <VCol
                                 cols="12"
                                 md="1"
                               >
-                                <VBtn @click="handleRedirectConfirmPage">
+                                <VBtn @click="handleRedirectConfirmPage(ticket.timeTableId)">
                                   Đặt
                                 </VBtn>
                               </VCol>

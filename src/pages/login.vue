@@ -21,12 +21,9 @@ const form = ref({
 })
 
 const refVForm = ref<VForm>()
-
-const route = useRoute()
+const errorLogin = ref()
 const router = useRouter()
-
 const isPasswordVisible = ref(false)
-
 const authThemeMask = useGenerateImageVariant(authV2MaskLight, authV2MaskDark)
 
 const login = async () => {
@@ -39,15 +36,17 @@ const login = async () => {
 
   })
 
-  const { valueReponse } = res.data
+  const { valueReponse, respType } = res.data
 
-  useCookie('accessToken').value = valueReponse.token
-
-  // Redirect to `to` query if exist or redirect to index route
-  // ❗ nextTick is required to wait for DOM updates and later redirect
-  await nextTick(() => {
-    router.replace('/dashboard')
-  })
+  if (respType !== 200) {
+    errorLogin.value = 'Sai tên đăng nhập hoặc mật khẩu !!'
+  }
+  else {
+    useCookie('accessToken').value = valueReponse.token
+    await nextTick(() => {
+      router.replace('/dashboard')
+    })
+  }
 }
 
 const onSubmit = () => {
@@ -131,6 +130,17 @@ const onSubmit = () => {
                   :append-inner-icon="isPasswordVisible ? 'tabler-eye-off' : 'tabler-eye'"
                   @click:append-inner="isPasswordVisible = !isPasswordVisible"
                 />
+                <div
+                  v-if="errorLogin"
+                  class="mt-2"
+                >
+                  <VAlert
+                    type="error"
+                    dismissible
+                  >
+                    {{ errorLogin }}
+                  </VAlert>
+                </div>
 
                 <div class="d-flex align-center flex-wrap justify-space-between mt-2 mb-4">
                   <VCheckbox

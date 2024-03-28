@@ -41,7 +41,7 @@ const response = await $api('/api/price/get', {
 const price = computed(() => response.data.valueReponse.data)
 const comparisonDate = new Date(price.value.fromDate)
 const currentDate = new Date()
-const isLessThanCurrentDate = comparisonDate < currentDate
+const isLessThanCurrentDate = comparisonDate <= currentDate
 const checkStatus = price.value.status === 0
 const dialog = ref(false)
 const dialogDelete = ref(false)

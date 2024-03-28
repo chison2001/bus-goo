@@ -13,10 +13,9 @@ const fullName = ref('')
 const phoneNumber = ref('')
 const selectedCity = ref()
 const district = ref()
-const ward = ref()
+const address = ref()
 const cities = ref([] as Region[])
 const districts = ref([] as Region[])
-const wards = ref([] as Region[])
 const router = useRouter()
 
 const add = async () => {
@@ -25,7 +24,8 @@ const add = async () => {
     data: {
       fullName: fullName.value,
       phone: phoneNumber.value,
-      regeionDetailId: ward.value.value,
+      regeionDetailId: district.value.value,
+      addressDescription: address.value,
     },
 
   })
@@ -60,10 +60,6 @@ async function getRegion(parentId: number | null, regionStructureId: number) {
 
   const data = res.data.valueReponse.data
 
-  console.log(data.map((item: { id: any; fullName: any }) => ({
-    value: item.id,
-    title: item.fullName,
-  })))
   if (regionStructureId === 1) {
     cities.value = data.map((item: { id: any; fullName: any }) => ({
       value: item.id,
@@ -76,17 +72,14 @@ async function getRegion(parentId: number | null, regionStructureId: number) {
       title: item.fullName,
     }))
   }
-  if (regionStructureId === 3) {
-    wards.value = data.map((item: { id: any; fullName: any }) => ({
-      value: item.id,
-      title: item.fullName,
-    }))
-  }
-  console.log(districts.value)
 }
 await getRegion(null, 1)
-watch(selectedCity, () => getRegion(selectedCity.value.value, 2))
-watch(district, () => getRegion(district.value.value, 3))
+watch(selectedCity, () => {
+  getRegion(selectedCity.value.value, 2)
+})
+watch(district, () => {
+  getRegion(district.value.value, 3)
+})
 </script>
 
 <template>
@@ -163,11 +156,10 @@ watch(district, () => getRegion(district.value.value, 3))
             cols="12"
             md="6"
           >
-            <AppCombobox
-              v-model="ward"
-              :items="wards"
-              label="Phường/Xã"
-              :rules="[requiredValidator]"
+            <AppTextField
+              v-model="address"
+              label="Địa chỉ chi tiết"
+              placeholder="60 Ngô Tất Tố, P22"
             />
           </VCol>
 

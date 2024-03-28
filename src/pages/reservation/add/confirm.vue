@@ -1,10 +1,30 @@
 <script setup lang="ts">
 import { VForm } from 'vuetify/components/VForm'
-import { database } from '@/plugins/fake-api/handlers/apps/ticket/db'
+import $api from '@/utils/api'
 
-const tickets = database
-const now = new Date()
-const date = now.toLocaleDateString('es-CL')
+interface SeatOrder {
+  id: number
+  seatName: string
+  seatType: string
+  timeTableId: number
+  orderDetailId: number
+  isAvailable: boolean
+}
+interface Ticket {
+  timeTableId: number
+  timeStated: string
+  priceDetailId: number
+  priceValue: number
+  countEmptySeat: number
+  routeId: number
+  typeBusName: string
+  transferTime: string
+  fromName: string
+  toName: string
+  expanded: boolean
+  endTime: string
+  seatOrder: SeatOrder[]
+}
 
 const selectedSeats = ref<string[]>([])
 const refForm = ref<VForm>()
@@ -13,10 +33,32 @@ const email = ref('')
 const phoneNumber = ref('')
 const addreess = ref('')
 const searchValue = ref('')
+const route = useRoute('reservation-add-confirm')
 
-const getColor = (isSelected: any, disabled: any) => {
+const res = await $api('/api/bustrip/get-bus-trip', {
+  method: 'GET',
+  params: {
+    timeTableId: route.query.id,
+  },
+})
+
+const { valueReponse } = res.data
+const ticket: Ticket = computed(() => valueReponse.data)
+
+const seatOrders = route.query.seatOrders
+if (seatOrders && typeof seatOrders === 'string') {
+  // Phân tích chuỗi JSON và gán giá trị cho selectedSeats
+  try {
+    selectedSeats.value = JSON.parse(seatOrders)
+  }
+  catch (e) {
+    console.error('Could not parse seatOrders:', e)
+  }
+}
+
+const getColor = (disabled: any, seatName: any) => {
   // Determine the appropriate color based on the state
-  if (isSelected)
+  if (selectedSeats.value.includes(seatName))
     return '#FB8C00'
   else if (disabled)
     return '#78909C'
@@ -28,10 +70,9 @@ function handleOnClickSeat(chair: any) {
   // Kiểm tra xem selectedSeats có tồn tại và không phải là undefined
   if (selectedSeats !== undefined && selectedSeats.value) {
     // Nếu có, tiến hành xử lý các thao tác trên mảng selectedSeats
-    const index = selectedSeats.value.indexOf(chair.location)
-
+    const index = selectedSeats.value.indexOf(chair.seatName)
     if (index === -1)
-      selectedSeats.value.push(chair.location)
+      selectedSeats.value.push(chair.seatName)
     else
       selectedSeats.value.splice(index, 1)
 
@@ -106,18 +147,18 @@ function handleOnClickSeat(chair: any) {
                       </VSheet>
                     </VCol>
                     <VCol
-                      v-for="(chair, i) in tickets[0].downFloorSeat"
+                      v-for="(chair, i) in ticket.seatOrder.filter((seat: SeatOrder) => seat.seatType === 'D')"
                       :key="i"
                       cols="12"
                       md="4"
                     >
                       <VItem
                         v-slot="{
-                          toggle = () => {}, isSelected,
+                          toggle = () => {},
                         }"
                       >
                         <VCard
-                          :color="getColor(isSelected, !chair.isAvailable)"
+                          :color="getColor(!chair.isAvailable, chair.seatName)"
                           class="d-flex align-center"
                           height="50"
                           width="50"
@@ -126,7 +167,7 @@ function handleOnClickSeat(chair: any) {
                         >
                           <VScrollYTransition>
                             <div class="text-h5 flex-grow-1 text-center">
-                              {{ chair.location }}
+                              {{ chair.seatName }}
                             </div>
                           </VScrollYTransition>
                         </VCard>
@@ -153,18 +194,18 @@ function handleOnClickSeat(chair: any) {
                       </VSheet>
                     </VCol>
                     <VCol
-                      v-for="(chair, i) in tickets[0].upFloorSeat"
+                      v-for="(chair, i) in ticket.seatOrder.filter((seat: SeatOrder) => seat.seatType === 'T')"
                       :key="i"
                       cols="12"
                       md="4"
                     >
                       <VItem
                         v-slot="{
-                          isSelected, toggle = () => {},
+                          toggle = () => {},
                         }"
                       >
                         <VCard
-                          :color="getColor(isSelected, !chair.isAvailable)"
+                          :color="getColor(!chair.isAvailable, chair.seatName)"
                           class="d-flex align-center"
                           height="50"
                           width="50"
@@ -173,7 +214,7 @@ function handleOnClickSeat(chair: any) {
                         >
                           <VScrollYTransition>
                             <div class="text-h5 flex-grow-1 text-center">
-                              {{ chair.location }}
+                              {{ chair.seatName }}
                             </div>
                           </VScrollYTransition>
                         </VCard>
@@ -208,7 +249,7 @@ function handleOnClickSeat(chair: any) {
             md="7"
             class="text-end"
           >
-            {{ tickets[0].departure.trim() }} - {{ tickets[0].destination.trim() }}
+            {{ `${ticket.fromName} - ${ticket.toName}` }}
           </VCol>
         </VRow>
         <VRow class="px-2">
@@ -223,7 +264,7 @@ function handleOnClickSeat(chair: any) {
             md="7"
             class="text-end"
           >
-            {{ date }}
+            {{ ticket.timeStated }}
           </VCol>
         </VRow>
         <VRow class="px-2">
@@ -268,7 +309,7 @@ function handleOnClickSeat(chair: any) {
             md="7"
             class="text-end"
           >
-            {{ selectedSeats.length * Number(tickets[0].price) }}
+            {{ selectedSeats.length * ticket.priceValue }}
           </VCol>
         </VRow>
       </VCard>
