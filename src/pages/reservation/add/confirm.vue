@@ -41,6 +41,16 @@ interface Ticket {
   seatOrder: SeatOrder[]
 }
 
+interface Promotion {
+  promotionDetailId: number
+  promotionCode: string
+  promotionLineName: string
+  promotionType: number
+  discount: number
+  conditionApply: number
+  maxDiscount: number
+}
+
 const seatStore = useSeatStore()
 const searchValue = ref('')
 const user = ref<User>()
@@ -52,6 +62,7 @@ const router = useRouter()
 const pickupPoint = ref()
 const dropoffPoint = ref()
 const error = ref()
+const promotion = ref<Promotion>()
 
 async function getTicket() {
   const res = await $api('/api/bustrip/get-bus-trip', {
@@ -68,14 +79,20 @@ async function getTicket() {
 
 await getTicket()
 
-const getColor = (disabled: any, seatName: any) => {
-  if (seatStore.selectedSeats.includes(seatName))
-    return '#FB8C00'
-  else if (disabled)
-    return '#78909C'
-  else
-    return '#039BE5'
+async function getPromotion() {
+  const res = await $api('/api/promotion/get-by-frice', {
+    method: 'GET',
+    params: {
+      priceValue: (ticket.value?.priceValue ?? 0) * seatStore.selectedSeats.length,
+    },
+  })
+
+  const { valueReponse } = res.data
+
+  promotion.value = valueReponse.data
 }
+
+await getPromotion()
 
 async function getUserByPhoneNumber(phoneNum: any) {
   if (user.value)
@@ -93,15 +110,12 @@ async function getUserByPhoneNumber(phoneNum: any) {
   if (respType === 200)
     user.value = valueReponse.data
 }
-function handleOnClickSeat(chair: any) {
-  seatStore.toggleSeat(chair)
-}
 
 async function getStationFrom() {
   const res = await $api('/api/station/get', {
     method: 'GET',
     params: {
-      regionDetailId: route.query.fromId,
+      regionDetailId: seatStore.selectedFrom.value,
     },
   })
 
@@ -123,7 +137,7 @@ async function getStationTo() {
   const res = await $api('/api/station/get', {
     method: 'GET',
     params: {
-      regionDetailId: route.query.toId,
+      regionDetailId: seatStore.selectedTo.value,
     },
   })
 
@@ -189,375 +203,115 @@ async function submit() {
   })
 
   const { respType } = response.data
+}
 
-  router.push('/reservation/list')
+function formatDateString(dateString: string) {
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
+
+  return `${hours}:${minutes} ${day}-${month}-${year}`
+}
+
+function formatPrice(value: number) {
+  return `${value.toLocaleString('vi-VN')} VNĐ`
 }
 </script>
 
 <template>
-  <VRow v-if="ticket">
-    <VCol
-      cols="12"
-      md="9"
-    >
-      <VCard>
-        <VCardText class="text-h3 font-weight-bold">
-          Chọn ghế
-        </VCardText>
-        <VCardText>
-          <VRow>
-            <VCol
-              cols="12"
-              md="12"
-              class="justify-center d-flex flex-row"
-            >
-              <div class="d-flex flex-row mx-5">
-                <VIcon
-                  icon="tabler-rectangle-filled"
-                  color="#78909C"
-                  class="me-3"
-                />
-                <VSheet>
-                  đã đặt
-                </VSheet>
-              </div>
-              <div class="d-flex flex-row mx-5">
-                <VIcon
-                  icon="tabler-rectangle-filled"
-                  color="#FB8C00"
-                  class="me-3"
-                />
-                <VSheet>
-                  đang chọn
-                </VSheet>
-              </div>
-              <div class="d-flex flex-row mx-5">
-                <VIcon
-                  icon="tabler-rectangle-filled"
-                  color="#039BE5"
-                  class="me-3"
-                />
-                <VSheet>
-                  còn trống
-                </VSheet>
-              </div>
-            </VCol>
-          </VRow>
-          <VRow class="justify-center">
-            <VCol
-              md="4"
-              mb="12"
-              class="text-center"
-            >
-              <VItemGroup multiple>
-                <VContainer>
-                  <VRow>
-                    <VCol
-                      cols="12"
-                      mb="12"
-                    >
-                      <VSheet class="text-h3 flex-grow-1 text-center">
-                        Tầng dưới
-                      </VSheet>
-                    </VCol>
-                    <VCol
-                      v-for="(chair, i) in ticket.seatOrder.filter((seat: SeatOrder) => seat.seatType === 'D')"
-                      :key="i"
-                      cols="12"
-                      md="4"
-                      mb="12"
-                    >
-                      <VItem
-                        v-slot="{
-                          toggle = () => {},
-                        }"
-                      >
-                        <VCard
-                          :color="getColor(!chair.isAvailable, chair.seatName)"
-                          class="d-flex align-center"
-                          height="50"
-                          width="50"
-                          :disabled="!chair.isAvailable"
-                          @click="toggle(), handleOnClickSeat(chair)"
-                        >
-                          <VScrollYTransition>
-                            <div class="text-h5 flex-grow-1 text-center">
-                              {{ chair.seatName }}
-                            </div>
-                          </VScrollYTransition>
-                        </VCard>
-                        <VSpacer />
-                      </VItem>
-                    </VCol>
-                  </VRow>
-                </VContainer>
-              </VItemGroup>
-            </VCol>
-            <VCol
-              md="4"
-              mb="12"
-              class="text-center"
-            >
-              <VItemGroup multiple>
-                <VContainer>
-                  <VRow>
-                    <VCol
-                      cols="12"
-                      mb="12"
-                    >
-                      <VSheet class="text-h3 flex-grow-1 text-center">
-                        Tầng trên
-                      </VSheet>
-                    </VCol>
-                    <VCol
-                      v-for="(chair, i) in ticket.seatOrder.filter((seat: SeatOrder) => seat.seatType === 'T')"
-                      :key="i"
-                      cols="12"
-                      md="4"
-                      mb="12"
-                    >
-                      <VItem
-                        v-slot="{
-                          toggle = () => {},
-                        }"
-                      >
-                        <VCard
-                          :color="getColor(!chair.isAvailable, chair.seatName)"
-                          class="d-flex align-center"
-                          height="50"
-                          width="50"
-                          :disabled="!chair.isAvailable"
-                          @click="toggle(), handleOnClickSeat(chair)"
-                        >
-                          <VScrollYTransition>
-                            <div class="text-h5 flex-grow-1 text-center">
-                              {{ chair.seatName }}
-                            </div>
-                          </VScrollYTransition>
-                        </VCard>
-                        <VSpacer />
-                      </VItem>
-                    </VCol>
-                  </VRow>
-                </VContainer>
-              </VItemGroup>
-            </VCol>
-          </VRow>
-        </VCardText>
-      </VCard>
-    </VCol>
-    <VCol
-      cols="12"
-      md="3"
-    >
-      <VCard class="sticky-top">
-        <VCardTitle class="text-h5 font-weight-bold">
-          Thông tin lượt đi
-        </VCardTitle>
-        <VRow class="px-2">
-          <VCol
-            cols="12"
-            md="5"
-          >
-            Tuyến xe
-          </VCol>
-          <VCol
-            cols="12"
-            md="7"
-            class="text-end"
-          >
-            {{ `${ticket.fromName} - ${ticket.toName}` }}
-          </VCol>
-        </VRow>
-        <VRow class="px-2">
-          <VCol
-            cols="12"
-            md="5"
-          >
-            Thời gian
-          </VCol>
-          <VCol
-            cols="12"
-            md="7"
-            class="text-end"
-          >
-            {{ ticket.timeStated }}
-          </VCol>
-        </VRow>
-        <VRow class="px-2">
-          <VCol
-            cols="12"
-            md="5"
-          >
-            Số lượng ghế
-          </VCol>
-          <VCol
-            cols="12"
-            md="7"
-            class="text-end"
-          >
-            {{ seatStore.selectedSeats.length }}
-          </VCol>
-        </VRow>
-        <VRow class="px-2">
-          <VCol
-            cols="12"
-            md="5"
-          >
-            Số ghế
-          </VCol>
-          <VCol
-            cols="12"
-            md="7"
-            class="text-end"
-          >
-            {{ seatStore.selectedSeats.join(', ') }}
-          </VCol>
-        </VRow>
-        <VRow class="px-2">
-          <VCol
-            cols="12"
-            md="5"
-          >
-            Tổng tiền
-          </VCol>
-          <VCol
-            cols="12"
-            md="7"
-            class="text-end"
-          >
-            {{ seatStore.selectedSeats.length * ticket.priceValue }}
-          </VCol>
-        </VRow>
-      </VCard>
-    </VCol>
-  </VRow>
   <VRow>
     <VCol
       cols="12"
-      md="9"
+      md="8"
     >
       <VCard>
-        <VCardText class="text-h3 font-weight-bold">
-          Thông tin khách hàng
+        <VCardText class="text-h4 font-weight-bold">
+          Thông tin lượt đi
         </VCardText>
-        <VRow>
-          <VCol
-            cols="12"
-            md="6"
-            mb="9"
-          >
-            <VCardItem>
-              <VRow class="justify-center">
-                <VCol
-                  cols="12"
-                  md="10"
-                  class="d-flex flex-row"
-                >
-                  <AppTextField
-                    v-model="searchValue"
-                    placeholder="Tìm khách hàng"
-                  />
-                  <VBtn
-                    class="ms-2"
-                    @click="getUserByPhoneNumber(searchValue)"
-                  >
-                    Tìm kiếm
-                  </VBtn>
-                </VCol>
-              </VRow>
-              <VRow class="justify-center py-2">
-                <div
-                  v-if="user"
-                  class="text-base"
-                >
-                  <h6 class="text-base font-weight-medium mb-2">
-                    Họ và tên
-                  </h6>
-
-                  <p class="mb-1">
-                    {{ user.fullName }}
-                  </p>
-
-                  <VDivider class="my-4" />
-
-                  <h6 class="text-base font-weight-medium mb-2">
-                    Số điện thoại
-                  </h6>
-
-                  <p class="mb-1">
-                    {{ user.phone }}
-                  </p>
-
-                  <VDivider class="my-4" />
-
-                  <h6 class="text-base font-weight-medium mb-2">
-                    Địa chỉ
-                  </h6>
-
-                  <p class="mb-1">
-                    {{ user.address }}
-                  </p>
-                </div>
-                <div
-                  v-else
-                  class="py-2"
-                >
-                  <h6 class="text-base font-weight-medium mb-2">
-                    Không tìm thấy người dùng
-                  </h6>
-
-                  <VBtn
-                    color="success"
-                    :to="{ name: 'user-add' }"
-                  >
-                    Thêm người dùng
-                  </VBtn>
-                </div>
-              </VRow>
-            </VCardItem>
-          </VCol>
-          <VDivider
-            vertical
-            :thickness="2"
-          />
-          <VCol
-            cols="12"
-            md="5"
-            mb="12"
-          >
-            <h3 class="text-base font-weight-medium mb-2">
-              Bến đi
-            </h3>
-            <AppSelect
-              v-model="pickupPoint"
-              :items="stationFrom"
-              class="py-2"
+        <VCardText>
+          <VRow class="justify-center">
+            <div
+              v-if="ticket"
+              class="text-base"
             >
-              <template #item="{ props, item }">
-                <VListItem
-                  v-bind="props"
-                  :subtitle="item.raw.subtitle"
-                />
-              </template>
-            </AppSelect>
-            <h3 class="text-base font-weight-medium mb-2 pt-15">
-              Bến đến
-            </h3>
-            <AppSelect
-              v-model="dropoffPoint"
-              :items="stationTo"
-              class="py-2"
+              <p>
+                Tuyến xe:<span class="font-weight-bold"> {{ `${ticket.fromName} - ${ticket.toName}` }}</span>
+              </p>
+              <p>
+                Thời gian xuất bến: <span class="font-weight-bold">{{ formatDateString(ticket.timeStated) }}</span>
+              </p>
+              <p>
+                Số lượng ghế: <span class="font-weight-bold">{{ seatStore.selectedSeats.length }} Ghế</span>
+              </p>
+              <p>
+                Số ghế: <span class="font-weight-bold">{{ seatStore.selectedSeats.join(', ') }}</span>
+              </p>
+              <p>
+                Tổng tiền lượt đi: <span class="font-weight-bold">{{ formatPrice(seatStore.selectedSeats.length * Number(ticket.priceValue)) }}</span>
+              </p>
+            </div>
+          </VRow>
+        </VCardText>
+      </VCard>
+      <VCard class="my-7">
+        <VCardTitle class="text-h4 font-weight-bold mt-4">
+          Thông tin khách hàng
+        </VCardTitle>
+        <VCardItem>
+          <VRow class="justify-center">
+            <VCol
+              cols="12"
+              md="6"
+              class="d-flex flex-row"
             >
-              <template #item="{ props, item }">
-                <VListItem
-                  v-bind="props"
-                  :subtitle="item.raw.subtitle"
-                />
-              </template>
-            </AppSelect>
-          </VCol>
-        </VRow>
+              <AppTextField
+                v-model="searchValue"
+                placeholder="Tìm khách hàng"
+              />
+              <VBtn
+                class="ms-2"
+                @click="getUserByPhoneNumber(searchValue)"
+              >
+                Tìm kiếm
+              </VBtn>
+            </VCol>
+          </VRow>
+          <VRow class="justify-center">
+            <div
+              v-if="user"
+              class="text-base"
+            >
+              <p>
+                Họ và tên: <span class="font-weight-bold"> {{ user.fullName }}</span>
+              </p>
+              <p>
+                Số điện thoại: <span class="font-weight-bold"> {{ user.phone }}
+                </span>
+              </p>
+              <p>
+                Địa chỉ: <span class="font-weight-bold"> {{ user.address }}</span>
+              </p>
+            </div>
+            <div
+              v-else
+              class="py-3"
+            >
+              <h6 class="text-base font-weight-medium mb-2">
+                Không tìm thấy người dùng
+              </h6>
+
+              <VBtn
+                color="success"
+                :to="{ name: 'user-add' }"
+              >
+                Thêm người dùng
+              </VBtn>
+            </div>
+          </VRow>
+        </VCardItem>
         <Row v-if="error">
           <VCol
             cols="12"
@@ -581,10 +335,10 @@ async function submit() {
               block
               variant="outlined"
               color="secondary"
-              size="large"
-              @click="router.go(-1); seatStore.clearSeats()"
+              rounded="lg"
+              @click="router.go(-1)"
             >
-              Huỷ
+              Trở lại
             </VBtn>
           </VCol>
           <VCol
@@ -593,7 +347,7 @@ async function submit() {
           >
             <VBtn
               type="submit"
-              size="large"
+              rounded="lg"
               block
               @click="submit"
             >
@@ -601,6 +355,87 @@ async function submit() {
             </VBtn>
           </VCol>
         </VRow>
+      </VCard>
+    </VCol>
+    <VCol
+      cols="12"
+      md="4"
+    >
+      <VCard>
+        <VCardTitle class="text-h4 font-weight-bold mt-4">
+          Thông tin khuyến mãi
+        </VCardTitle>
+        <VCardText class="text-body-1">
+          <div v-if="promotion">
+            <p>
+              Tên chương trình: <span class="font-weight-bold">  {{ promotion?.promotionLineName }} </span>
+            </p>
+            <div
+              v-if="promotion?.promotionType === 1"
+              class="promotion-details"
+            >
+              <div>
+                <div class="condition">
+                  Giá mua tối thiểu để áp dụng <span class="font-weight-bold"> {{ formatPrice(promotion.conditionApply) }} </span>
+                </div>
+                <div class="discount">
+                  Được giảm <span class="font-weight-bold">  {{ formatPrice(promotion.discount) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              v-if="promotion?.promotionType === 2"
+              class="promotion-details"
+            >
+              <div>
+                <div class="discount">
+                  Giảm ngay<span class="font-weight-bold">  {{ promotion.discount }}</span> % khi đặt vé
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else>
+            <p>Không có chương trình khuyến mãi nào đang hoạt động!</p>
+          </div>
+        </VCardText>
+      </VCard>
+      <VCard class="my-7">
+        <VCardTitle class="text-h4 font-weight-bold mt-4">
+          Thông tin đón trả
+        </VCardTitle>
+        <VCardItem>
+          <h3 class="text-base font-weight-medium mb-2">
+            Bến đi
+          </h3>
+          <AppSelect
+            v-model="pickupPoint"
+            :items="stationFrom"
+            class="py-2"
+          >
+            <template #item="{ props, item }">
+              <VListItem
+                v-bind="props"
+                :subtitle="item.raw.subtitle"
+              />
+            </template>
+          </AppSelect>
+          <h3 class="text-base font-weight-medium mb-2 pt-7">
+            Bến đến
+          </h3>
+          <AppSelect
+            v-model="dropoffPoint"
+            :items="stationTo"
+            class="py-2"
+          >
+            <template #item="{ props, item }">
+              <VListItem
+                v-bind="props"
+                :subtitle="item.raw.subtitle"
+              />
+            </template>
+          </AppSelect>
+        </VCardItem>
       </VCard>
     </VCol>
   </VRow>

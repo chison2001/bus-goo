@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useSeatStore } from '@core/stores/seatStore'
+
+const store = useSeatStore()
+
 const shortcuts = [
   {
     icon: 'tabler-calendar',
@@ -26,6 +30,11 @@ const shortcuts = [
   },
 
 ]
+
+onBeforeRouteLeave(to => {
+  if (to.path === '/reservation/add')
+    store.clearState()
+})
 </script>
 
 <template>

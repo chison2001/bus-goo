@@ -1,4 +1,12 @@
 <script setup lang="ts">
+interface RegionParent {
+  fullName: string
+}
+
+interface RegionDetail {
+  fullName: string
+  regionParent: RegionParent
+}
 interface Props {
   userData: {
     id: number
@@ -7,6 +15,8 @@ interface Props {
     phone: string
     userCode: string
     status: number
+    regeionDetail: RegionDetail
+    addressDescription: string
   }
 }
 
@@ -39,7 +49,7 @@ const resolveUserStatusVariant = (stat: number) => {
         <!-- 👉 Details -->
         <VCardText>
           <p class="text-sm text-uppercase text-disabled">
-            Details
+            Thông tin chi tiết người dùng
           </p>
 
           <!-- 👉 User Details list -->
@@ -47,7 +57,7 @@ const resolveUserStatusVariant = (stat: number) => {
             <VListItem>
               <VListItemTitle>
                 <h6 class="text-h6">
-                  Username:
+                  Họ và tên:
                   <span class="text-body-1">
                     {{ props.userData.fullName }}
                   </span>
@@ -67,7 +77,7 @@ const resolveUserStatusVariant = (stat: number) => {
               <VListItemTitle>
                 <h6 class="text-h6">
                   Địa chỉ:
-                  <span class="text-body-1">{{ props.userData.address }}</span>
+                  <span class="text-body-1">{{ `${props.userData.addressDescription}, ${props.userData.regeionDetail.fullName}, ${props.userData.regeionDetail.regionParent.fullName}` }}</span>
                 </h6>
               </VListItemTitle>
             </VListItem>

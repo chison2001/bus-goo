@@ -2,7 +2,9 @@
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
 import $api from '@/utils/api'
 import { paginationMeta } from '@api-utils/paginationMeta'
+import { useSeatStore } from '@core/stores/seatStore'
 
+const store = useSeatStore()
 const selectedStatus = ref('')
 const selectedFromDate = ref('')
 const selectedToDate = ref('')
@@ -33,6 +35,11 @@ const status = [
   { title: 'Active', value: 1 },
   { title: 'Inactive', value: 0 },
 ]
+
+onBeforeRouteLeave(to => {
+  if (to.path === '/reservation/add')
+    store.clearState()
+})
 
 // 👉 Fetch Invoices
 const { data: orderData, execute: fetchInvoices } = await useApi<any>(createUrl('/api/order/find', {
@@ -201,7 +208,7 @@ const deleteInvoice = async (id: number) => {
           </IconBtn>
 
           <IconBtn :to="{ name: 'promotion-edit-id', params: { id: item.id } }">
-            <VIcon icon="tabler-edit" />
+            <VIcon icon="tabler-eye" />
           </IconBtn>
         </template>
 

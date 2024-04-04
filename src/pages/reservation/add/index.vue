@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { register } from 'swiper/element/bundle'
 import { router } from '@/plugins/1.router'
 import $api from '@/utils/api'
 import { useSeatStore } from '@core/stores/seatStore'
+
+register()
 
 interface Region {
   value: number
@@ -15,16 +18,29 @@ interface SeatOrder {
   orderDetailId: number
   isAvailable: boolean
 }
+interface Promotion {
+  promotionDetailId: number
+  promotionCode: string
+  promotionLineName: string
+  promotionType: number
+  discount: number
+  conditionApply: number
+  maxDiscount: number
+}
 
-const selectedTicket = ref()
 const seatStore = useSeatStore()
 const cities = ref([] as Region[])
+const promotions = ref([] as Promotion[])
 const now = new Date()
 const date = now.toLocaleDateString('fr-CA')
 
+function formatPrice(value: number) {
+  return `${value.toLocaleString('vi-VN')} VNĐ`
+}
+
 const handleTicketClick = (ticket: any) => {
-  if (selectedTicket.value === '') {
-    selectedTicket.value = ticket.timeTableId
+  if (seatStore.selectedTicket === -1) {
+    seatStore.selectedTicket = ticket.timeTableId
     seatStore.tickets.forEach(t => {
       if (t.timeTableId !== ticket.timeTableId)
         t.expanded = false
@@ -35,25 +51,24 @@ const handleTicketClick = (ticket: any) => {
     return
   }
 
-  if (ticket.timeTableId !== selectedTicket.value) {
+  if (ticket.timeTableId !== seatStore.selectedTicket) {
     seatStore.tickets.forEach(t => {
       if (t.timeTableId !== ticket.timeTableId)
         t.expanded = false
       else
         t.expanded = true
     })
-    selectedTicket.value = ticket.timeTableId
+    seatStore.selectedTicket = ticket.timeTableId
     seatStore.clearSeats()
   }
 }
 
 const getExpandedValue = (ticket: any) => {
-  return selectedTicket.value === ticket.timeTableId ? 'selectedSeat' : undefined
+  return seatStore.selectedTicket === ticket.timeTableId ? 'selectedSeat' : undefined
 }
 
-const getColor = (isSelected: any, disabled: any) => {
-  // Determine the appropriate color based on the state
-  if (isSelected)
+const getColor = (disabled: any, seatName: any) => {
+  if (seatStore.selectedSeats.includes(seatName))
     return '#FB8C00'
   else if (disabled)
     return '#78909C'
@@ -88,8 +103,6 @@ function handleRedirectConfirmPage(id: number) {
     name: 'reservation-add-confirm',
     query: {
       id,
-      fromId: seatStore.selectedFrom.value,
-      toId: seatStore.selectedTo.value,
     },
   })
 }
@@ -108,6 +121,16 @@ async function searchTicket() {
   if (respType === 200)
     seatStore.tickets = valueReponse.data
 }
+async function getCurrentPromotion() {
+  const res = await $api('/api/promotion/get-current-promotion', {
+    method: 'GET',
+  })
+
+  const { respType, valueReponse } = res.data
+  if (respType === 200)
+    promotions.value = valueReponse.data
+}
+await getCurrentPromotion()
 function formatToTime(dateTimeString: any) {
   const dateformat = new Date(dateTimeString)
 
@@ -185,61 +208,12 @@ function formatTime(timeString: any) {
 
     <VRow>
       <VCol
-        md="3"
-        cols="12"
-      >
-        <VRow>
-          <VCol
-            cols="12"
-            md="12"
-          >
-            <VCard class="d-flex flex-column align-items-start">
-              <VCardTitle class="text-center">
-                Bộ lọc tìm kiếm
-              </VCardTitle>
-              <VDivider />
-              <VCardText>
-                Giờ đi
-              </VCardText>
-              <div class="ms-10">
-                <VCheckbox label="Sáng sớm 00:00 - 06:00(0)" />
-                <VCheckbox label="Buổi sáng 06:00 - 12:00(0)" />
-                <VCheckbox label="Buổi chiều 12:00 - 18:00(0)" />
-                <VCheckbox label="Buổi tối 18:00 - 24:00(0)" />
-              </div>
-              <VCardText>
-                Loại xe
-              </VCardText>
-              <VChipGroup class="ms-2 d-flex flex-row">
-                <VChip class="border py-1 px-2 mx-2">
-                  Ghế
-                </VChip>
-                <VChip class="border py-1 px-2 mx-2">
-                  Giường
-                </VChip>
-                <VChip class="border py-1 px-2 mx-2">
-                  Limousine
-                </VChip>
-              </VChipGroup>
-              <VLabel class="justify-center pb-5 text-error">
-                <VIcon
-                  icon="tabler-trash"
-                  color="error"
-                />
-                Bỏ lọc
-              </VLabel>
-            </VCard>
-          </VCol>
-        </VRow>
-      </VCol>
-
-      <VCol
+        md="12"
         lg="9"
         sm="12"
-        md="9"
         cols="12"
       >
-        <VCard>
+        <VCard v-if="seatStore.tickets.length > 0">
           <VList lines="three">
             <template
               v-for="(ticket, index) of seatStore.tickets"
@@ -268,13 +242,19 @@ function formatTime(timeString: any) {
                         >
                           <VIcon
                             icon="tabler-circle-dot-filled"
+                            color="#388E3C"
                             class="me-2"
                           />
-                          <VDivider :thickness="3" />
-                          <span class="px-2">{{ formatTime(ticket.transferTime) }}</span>
-                          <VDivider :thickness="3" />
+                          <VDivider :thickness="2" />
+                          <VModelText class="text-center w-100">
+                            <span>{{ formatTime(ticket.transferTime) }}</span>
+                            <br>
+                            <span>dự kiến</span>
+                          </VModelText>
+                          <VDivider :thickness="2" />
                           <VIcon
                             icon="tabler-map-pin-filled"
+                            color="#F57C00"
                             class="ms-2"
                           />
                         </VCol>
@@ -334,7 +314,7 @@ function formatTime(timeString: any) {
                         lg="12"
                       >
                         <VSheet class="text-h4 text-center text-error">
-                          {{ ticket.priceValue }} vnd
+                          {{ formatPrice(ticket.priceValue) }}
                         </VSheet>
                       </VCol>
                     </VCol>
@@ -414,11 +394,11 @@ function formatTime(timeString: any) {
                                       >
                                         <VItem
                                           v-slot="{
-                                            toggle = () => {}, isSelected,
+                                            toggle = () => {},
                                           }"
                                         >
                                           <VCard
-                                            :color="getColor(isSelected, !chair.isAvailable)"
+                                            :color="getColor(!chair.isAvailable, chair.seatName)"
                                             class="d-flex align-center"
                                             height="50"
                                             width="50"
@@ -461,11 +441,11 @@ function formatTime(timeString: any) {
                                       >
                                         <VItem
                                           v-slot="{
-                                            isSelected, toggle = () => {},
+                                            toggle = () => {},
                                           }"
                                         >
                                           <VCard
-                                            :color="getColor(isSelected, !chair.isAvailable)"
+                                            :color="getColor(!chair.isAvailable, chair.seatName)"
                                             class="d-flex align-center"
                                             height="50"
                                             width="50"
@@ -509,13 +489,13 @@ function formatTime(timeString: any) {
                                 <VSheet class="text-h3 text-center">
                                   Tổng tiền
                                 </VSheet>
-                                <VSheet class="text-h5 text-center text-primary">
-                                  {{ seatStore.selectedSeats.length * Number(ticket.priceValue) }} vnd
+                                <VSheet class="text-h5 text-center text-error">
+                                  {{ formatPrice(seatStore.selectedSeats.length * Number(ticket.priceValue)) }}
                                 </VSheet>
                               </VCol>
                               <VCol
                                 cols="12"
-                                md="1"
+                                md="2"
                               >
                                 <VBtn @click="handleRedirectConfirmPage(ticket.timeTableId)">
                                   Đặt
@@ -533,7 +513,206 @@ function formatTime(timeString: any) {
             </template>
           </VList>
         </VCard>
+        <VCard v-else>
+          <VCardText>
+            Không tìm thấy vé
+          </VCardText>
+        </VCard>
+      </VCol>
+      <VCol
+        md="12"
+        lg="3"
+        sm="12"
+        cols="12"
+      >
+        <!-- 👉 Customer Review Swiper -->
+        <div class="swiper-reviews-carousel py-4">
+          <!-- eslint-disable vue/attribute-hyphenation -->
+          <swiper-container
+            slides-per-view="1"
+            space-between="5"
+            loop="true"
+            autoplay-delay="3000"
+            autoplay-disable-on-interaction="false"
+            events-prefix="swiper-"
+            :injectStyles="[
+              `
+                    .swiper{
+                      padding: 0;
+                    }
+                    .swiper-button-next, .swiper-button-prev{
+                      visibility: hidden;
+                    }
+                  `,
+            ]"
+            navigation="{
+                  nextEl: '.swiper-button-next',
+                  prevEl: '.swiper-button-prev',
+                }"
+            :breakpoints="{
+              1280: {
+                slidesPerView: 1,
+                spaceBetween: 20,
+              },
+              960: {
+                slidesPerView: 1,
+                spaceBetween: 20,
+              },
+              600: {
+                slidesPerView: 1,
+                spaceBetween: 10,
+              },
+            }"
+          >
+            <swiper-slide
+              v-for="(data, index) in promotions"
+              :key="index"
+            >
+              <VCard class="promotion-card">
+                <VCardText class="card-text">
+                  <div class="title">
+                    Chương trình khuyến mãi
+                  </div>
+                  <h5 class="subtitle">
+                    {{ data.promotionLineName }}
+                  </h5>
+
+                  <div
+                    v-if="data.promotionType === 1"
+                    class="promotion-details"
+                  >
+                    <div>
+                      <div class="condition">
+                        Đặt vé với giá trị hơn {{ formatPrice(data.conditionApply) }}
+                      </div>
+                      <div class="discount">
+                        Giảm ngay {{ formatPrice(data.discount) }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    v-if="data.promotionType === 2"
+                    class="promotion-details"
+                  >
+                    <div>
+                      <div class="discount">
+                        Giảm ngay {{ data.discount }} % khi đặt vé
+                      </div>
+                    </div>
+                  </div>
+                </VCardText>
+              </VCard>
+            </swiper-slide>
+          </swiper-container>
+        </div>
       </VCol>
     </VRow>
   </div>
 </template>
+
+<style lang="scss" scoped>
+@use "swiper/css/bundle";
+
+swiper-container::part(bullet-active) {
+  border-radius: 6px;
+  background-color: rgba(var(--v-theme-on-background), var(--v-disabled-opacity));
+  inline-size: 38px;
+}
+
+swiper-container::part(bullet) {
+  background-color: rgba(var(--v-theme-on-background));
+}
+
+.swiper-reviews-carousel {
+  swiper-container {
+    .swiper {
+      padding-block-end: 3rem;
+    }
+
+    .swiper-button-next{
+      display: none;
+    }
+  }
+
+  swiper-slide {
+    block-size: auto;
+    opacity: 1;
+  }
+}
+</style>
+
+<style lang="scss" scoped>
+.swiper-divider{
+  position: absolute;
+  inset-block-end: 6rem;
+}
+
+.customer-reviews {
+  margin-block: 5rem;
+}
+
+@media (max-width: 600px){
+  .customer-reviews{
+    margin-block: 4rem;
+  }
+}
+
+#customer-review{
+  border-radius: 3.75rem 3.75rem 0 0;
+  background-color: rgb(var(--v-theme-background));
+}
+
+.section-title::after{
+  position: absolute;
+  background: url('../../../assets/images/front-pages/icons/section-title-icon.png') no-repeat left bottom/contain;
+  background-size: contain;
+  block-size: 100%;
+  content: '';
+  font-weight: 700;
+  inline-size: 120%;
+  inset-block-end: 0;
+  inset-inline-start: -12%;
+}
+.promotion-card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease-in-out;
+  cursor: pointer;
+  &:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.card-text {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.subtitle {
+  font-size: 1.1em;
+  margin-bottom: 32px;
+  color: #555;
+}
+
+.promotion-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.condition,
+.discount {
+  font-size: 0.95em;
+  color: #333;
+  font-weight: 500;
+}
+</style>

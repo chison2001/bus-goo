@@ -29,8 +29,8 @@ const promoName = ref('')
 const fromDate = ref('')
 
 const promoTypeValue = ref({
-  value: 1,
-  title: 'Giá',
+  value: -1,
+  title: '',
 } as Item)
 
 const toDate = ref('')
@@ -54,6 +54,15 @@ watch(promoTypeValue, val => {
     }
   }
 })
+
+function resetDialog() {
+  nextTick(() => {
+    refFormLine.value?.reset()
+    refFormLine.value?.resetValidation()
+    fromDate.value = ''
+    toDate.value = ''
+  })
+}
 
 const response = await $api('/api/promotion/get-by-id', {
   method: 'GET',
@@ -154,8 +163,8 @@ async function getLineByID(id: number) {
     checkPromoType.value = false
 }
 function addLine() {
-  editedLineIndex = null
-  editedDetailIndex = null
+  editedLineIndex = -1
+  editedDetailIndex = -1
   dialogLine.value = true
 }
 
@@ -184,6 +193,7 @@ async function deleteLineConfirm() {
 
 // Function to close promo line dialog
 function closeLine() {
+  resetDialog()
   dialogLine.value = false
 }
 
@@ -239,6 +249,7 @@ async function saveLineAndDetail() {
       }
 
       closeLine()
+      resetDialog()
       await getLines()
     }
   }
@@ -545,7 +556,7 @@ const resolveUserStatusVariant = (stat: number) => {
                   md="6"
                   mb="12"
                 >
-                  <AppCombobox
+                  <AppSelect
                     v-model="promoTypeValue"
                     :items="promoTypes"
                     label="Loại dòng khuyến mãi"
