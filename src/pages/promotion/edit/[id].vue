@@ -39,11 +39,11 @@ const discount = ref('')
 const maxdiscount = ref()
 const conditionApply = ref()
 const route = useRoute('promotion-edit-id')
+const router = useRouter()
 const checkPromoType = ref(true)
 
 watch(promoTypeValue, val => {
   if (val !== null) {
-    console.log(val)
     if (val.value === 1) {
       checkPromoType.value = true
       maxdiscount.value = null
@@ -66,9 +66,29 @@ const currentDate = new Date()
 const isLessThanCurrentDate = comparisonDate < currentDate
 const checkStatus = promotion.value.status === 0
 
+const update = async () => {
+  const res = await $api('/api/promotion/update', {
+    method: 'POST',
+    data: {
+      promotionId: promotion.value.id,
+      name: promotion.value.name,
+      fromDate: promotion.value.fromDate,
+      toDate: promotion.value.toDate,
+      description: promotion.value.description,
+    },
+
+  })
+
+  const data = res.data
+
+  if (data.respType === 200)
+    router.replace('/promotion/list')
+}
+
 const onSubmit = () => {
   refForm.value?.validate().then(({ valid }) => {
     if (valid) {
+      update()
       nextTick(() => {
         refForm.value?.reset()
         refForm.value?.resetValidation()
@@ -153,19 +173,17 @@ function deleteLine(id: any) {
 }
 
 // Function to confirm deletion of promo line
-function deleteLineConfirm() {
-  newPromoLines.value.splice(deletedId, 1)
+async function deleteLineConfirm() {
+  await $api(`/api/promotion/delete-line/${deletedId}`, {
+    method: 'DELETE',
+  })
+  deletedId = -1
   closeLineDelete()
+  await getLines()
 }
 
 // Function to close promo line dialog
 function closeLine() {
-  nextTick(() => {
-    refFormLine.value?.reset()
-    fromDate.value = ''
-    toDate.value = ''
-    refFormLine.value?.resetValidation()
-  })
   dialogLine.value = false
 }
 
@@ -181,7 +199,7 @@ async function saveLine() {
       lineCode: lineCode.value,
       promotionId: promotion.value.id,
       promotionLineId: editedLineIndex,
-      lineName: lineCode.value,
+      lineName: promoName.value,
       fromDate: fromDate.value,
       toDate: toDate.value,
       promotionType: promoTypeValue.value.value,
@@ -206,20 +224,24 @@ async function saveDetail() {
   })
 }
 
-function saveLineAnDetail() {
-  refFormLine.value?.validate().then(async ({ valid }) => {
-    if (valid) {
-      await saveLine()
-      await saveDetail()
+async function saveLineAndDetail() {
+  if (refFormLine.value) {
+    const validation = await refFormLine.value.validate()
+    if (validation.valid) {
+      try {
+        await saveLine()
+        await saveDetail()
+      }
+      catch (error) {
+        console.error('Error saving line or detail:', error)
+
+        return
+      }
+
       closeLine()
-      nextTick(() => {
-        refFormLine.value?.reset()
-        fromDate.value = ''
-        toDate.value = ''
-        refFormLine.value?.resetValidation()
-      })
+      await getLines()
     }
-  })
+  }
 }
 
 watch(dialogLine, val => {
@@ -273,9 +295,21 @@ const resolveUserStatusVariant = (stat: number) => {
             <AppTextField
               v-model="promotion.code"
               :rules="[requiredValidator]"
-              :disabled="isLessThanCurrentDate || checkStatus"
+              disabled="true"
               :label="$t('Code')"
-              placeholder="TET2024"
+            />
+          </VCol>
+
+          <!-- 👉 Full name -->
+          <VCol
+            cols="12"
+            md="6"
+          >
+            <AppTextField
+              v-model="promotion.name"
+              :rules="[requiredValidator]"
+              :disabled="isLessThanCurrentDate || checkStatus"
+              label="Tên chương trình"
             />
           </VCol>
 
@@ -347,7 +381,10 @@ const resolveUserStatusVariant = (stat: number) => {
                   <th class="text-center">
                     Trạng thái
                   </th>
-                  <th class="text-center">
+                  <th
+                    v-if="!isLessThanCurrentDate && !checkStatus"
+                    class="text-center"
+                  >
                     <VIcon
                       class="me-2"
                       size="small"
@@ -387,7 +424,10 @@ const resolveUserStatusVariant = (stat: number) => {
                       {{ resolveUserStatusVariant(item.status)?.value }}
                     </VChip>
                   </td>
-                  <td class="text-center">
+                  <td
+                    v-if="!isLessThanCurrentDate && !checkStatus"
+                    class="text-center"
+                  >
                     <VIcon
                       class="me-2"
                       size="small"
@@ -442,6 +482,7 @@ const resolveUserStatusVariant = (stat: number) => {
             <VForm
               ref="refFormLine"
               v-model="isFormLineValid"
+              @submit.prevent="saveLineAndDetail"
             >
               <VRow>
                 <!-- 👉 Full name -->
@@ -478,6 +519,7 @@ const resolveUserStatusVariant = (stat: number) => {
                     label="Ngày bắt đầu"
                     clear-icon="tabler-x"
                     clearable
+                    :config="{ minDate: promotion.fromDate }"
                     :rules="[requiredValidator]"
                     placeholder="Chọn ngày"
                   />
@@ -492,6 +534,7 @@ const resolveUserStatusVariant = (stat: number) => {
                     v-model="toDate"
                     label="Ngày kết thúc"
                     clear-icon="tabler-x"
+                    :config="{ minDate: promotion.fromDate }"
                     clearable
                     :rules="[requiredValidator]"
                     placeholder="Chọn ngày"
@@ -577,7 +620,6 @@ const resolveUserStatusVariant = (stat: number) => {
                   variant="text"
                   type="submit"
                   :disabled="isLessThanCurrentDate || checkStatus"
-                  @click="saveLineAnDetail"
                 >
                   Lưu dòng khuyến mãi
                 </VBtn>

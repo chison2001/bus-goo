@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { VForm } from 'vuetify/components/VForm'
 import $api from '@/utils/api'
+import { useSeatStore } from '@core/stores/seatStore'
 
 interface SeatOrder {
   id: number
@@ -9,6 +9,21 @@ interface SeatOrder {
   timeTableId: number
   orderDetailId: number
   isAvailable: boolean
+}
+
+interface Station {
+  value: number
+  title: string
+  subtitle: string
+}
+
+interface User {
+  userId: number
+  userCode: string
+  fullName: string
+  phone: number
+  address: string
+  status: boolean
 }
 interface Ticket {
   timeTableId: number
@@ -26,39 +41,35 @@ interface Ticket {
   seatOrder: SeatOrder[]
 }
 
-const selectedSeats = ref<string[]>([])
-const refForm = ref<VForm>()
-const fullName = ref('')
-const email = ref('')
-const phoneNumber = ref('')
-const addreess = ref('')
+const seatStore = useSeatStore()
 const searchValue = ref('')
+const user = ref<User>()
+const stationFrom = ref([] as Station[])
+const stationTo = ref([] as Station[])
 const route = useRoute('reservation-add-confirm')
+const ticket = ref<Ticket>()
+const router = useRouter()
+const pickupPoint = ref()
+const dropoffPoint = ref()
+const error = ref()
 
-const res = await $api('/api/bustrip/get-bus-trip', {
-  method: 'GET',
-  params: {
-    timeTableId: route.query.id,
-  },
-})
+async function getTicket() {
+  const res = await $api('/api/bustrip/get-bus-trip', {
+    method: 'GET',
+    params: {
+      timeTableId: route.query.id,
+    },
+  })
 
-const { valueReponse } = res.data
-const ticket: Ticket = computed(() => valueReponse.data)
+  const { valueReponse } = res.data
 
-const seatOrders = route.query.seatOrders
-if (seatOrders && typeof seatOrders === 'string') {
-  // Phân tích chuỗi JSON và gán giá trị cho selectedSeats
-  try {
-    selectedSeats.value = JSON.parse(seatOrders)
-  }
-  catch (e) {
-    console.error('Could not parse seatOrders:', e)
-  }
+  ticket.value = valueReponse.data
 }
 
+await getTicket()
+
 const getColor = (disabled: any, seatName: any) => {
-  // Determine the appropriate color based on the state
-  if (selectedSeats.value.includes(seatName))
+  if (seatStore.selectedSeats.includes(seatName))
     return '#FB8C00'
   else if (disabled)
     return '#78909C'
@@ -66,23 +77,125 @@ const getColor = (disabled: any, seatName: any) => {
     return '#039BE5'
 }
 
-function handleOnClickSeat(chair: any) {
-  // Kiểm tra xem selectedSeats có tồn tại và không phải là undefined
-  if (selectedSeats !== undefined && selectedSeats.value) {
-    // Nếu có, tiến hành xử lý các thao tác trên mảng selectedSeats
-    const index = selectedSeats.value.indexOf(chair.seatName)
-    if (index === -1)
-      selectedSeats.value.push(chair.seatName)
-    else
-      selectedSeats.value.splice(index, 1)
+async function getUserByPhoneNumber(phoneNum: any) {
+  if (user.value)
+    user.value = undefined
 
-    selectedSeats.value.sort()
+  const response = await $api('/api/user/get-by-phone', {
+    method: 'GET',
+    params: {
+      phone: phoneNum,
+    },
+  })
+
+  const { valueReponse, respType } = response.data
+
+  if (respType === 200)
+    user.value = valueReponse.data
+}
+function handleOnClickSeat(chair: any) {
+  seatStore.toggleSeat(chair)
+}
+
+async function getStationFrom() {
+  const res = await $api('/api/station/get', {
+    method: 'GET',
+    params: {
+      regionDetailId: route.query.fromId,
+    },
+  })
+
+  const data = res.data.valueReponse.data
+
+  stationFrom.value = data.map((item: {
+    name: string
+    addressDescription: string
+    address: string
+    id: number
+  }) => ({
+    value: item.id,
+    title: item.name,
+    subtitle: `${item.addressDescription}, ${item.address}`,
+  }))
+}
+
+async function getStationTo() {
+  const res = await $api('/api/station/get', {
+    method: 'GET',
+    params: {
+      regionDetailId: route.query.toId,
+    },
+  })
+
+  const data = res.data.valueReponse.data
+
+  stationTo.value = data.map((item: {
+    name: string
+    addressDescription: string
+    address: string
+    id: number
+  }) => ({
+    value: item.id,
+    title: item.name,
+    subtitle: `${item.addressDescription}, ${item.address}`,
+  }))
+}
+
+await getStationFrom()
+await getStationTo()
+
+async function submit() {
+  error.value = undefined
+  if (seatStore.selectedSeats.length === 0) {
+    error.value = 'Vui lòng chọn ghế'
+
+    return
   }
+  console.log(user.value)
+  if (user.value?.userId === undefined) {
+    error.value = 'Vui lòng thêm thông tin người dùng'
+
+    return
+  }
+  if (pickupPoint.value === undefined) {
+    error.value = 'Vui lòng thêm bến đi'
+
+    return
+  }
+  if (dropoffPoint.value === undefined) {
+    error.value = 'Vui lòng thêm bến đến'
+
+    return
+  }
+  error.value = undefined
+
+  const listSeatOrder: number[] = []
+
+  seatStore.selectedSeats.forEach(seat => {
+    ticket.value?.seatOrder.forEach(seatOrder => {
+      if (seat === seatOrder.seatName)
+        listSeatOrder.push(seatOrder.id)
+    })
+  })
+
+  const response = await $api('/api/order/create', {
+    method: 'POST',
+    data: {
+      userId: user.value?.userId,
+      lstSeatOrderId: listSeatOrder,
+      pickupPointId: pickupPoint.value,
+      dropoffPointId: dropoffPoint.value,
+    },
+  })
+
+  const { respType } = response.data
+
+  router.push('/reservation/list')
 }
 </script>
 
 <template>
-  <VRow>
+  <VRow v-if="ticket">
     <VCol
       cols="12"
       md="9"
@@ -133,6 +246,7 @@ function handleOnClickSeat(chair: any) {
           <VRow class="justify-center">
             <VCol
               md="4"
+              mb="12"
               class="text-center"
             >
               <VItemGroup multiple>
@@ -140,7 +254,7 @@ function handleOnClickSeat(chair: any) {
                   <VRow>
                     <VCol
                       cols="12"
-                      md="12"
+                      mb="12"
                     >
                       <VSheet class="text-h3 flex-grow-1 text-center">
                         Tầng dưới
@@ -151,6 +265,7 @@ function handleOnClickSeat(chair: any) {
                       :key="i"
                       cols="12"
                       md="4"
+                      mb="12"
                     >
                       <VItem
                         v-slot="{
@@ -180,6 +295,7 @@ function handleOnClickSeat(chair: any) {
             </VCol>
             <VCol
               md="4"
+              mb="12"
               class="text-center"
             >
               <VItemGroup multiple>
@@ -187,7 +303,7 @@ function handleOnClickSeat(chair: any) {
                   <VRow>
                     <VCol
                       cols="12"
-                      md="12"
+                      mb="12"
                     >
                       <VSheet class="text-h3 flex-grow-1 text-center">
                         Tầng trên
@@ -198,6 +314,7 @@ function handleOnClickSeat(chair: any) {
                       :key="i"
                       cols="12"
                       md="4"
+                      mb="12"
                     >
                       <VItem
                         v-slot="{
@@ -279,7 +396,7 @@ function handleOnClickSeat(chair: any) {
             md="7"
             class="text-end"
           >
-            {{ selectedSeats.length }}
+            {{ seatStore.selectedSeats.length }}
           </VCol>
         </VRow>
         <VRow class="px-2">
@@ -294,7 +411,7 @@ function handleOnClickSeat(chair: any) {
             md="7"
             class="text-end"
           >
-            {{ selectedSeats.join(', ') }}
+            {{ seatStore.selectedSeats.join(', ') }}
           </VCol>
         </VRow>
         <VRow class="px-2">
@@ -309,7 +426,7 @@ function handleOnClickSeat(chair: any) {
             md="7"
             class="text-end"
           >
-            {{ selectedSeats.length * ticket.priceValue }}
+            {{ seatStore.selectedSeats.length * ticket.priceValue }}
           </VCol>
         </VRow>
       </VCard>
@@ -324,100 +441,166 @@ function handleOnClickSeat(chair: any) {
         <VCardText class="text-h3 font-weight-bold">
           Thông tin khách hàng
         </VCardText>
-        <VCardItem>
-          <VForm
-            ref="refForm"
-            @submit.prevent="() => {}"
+        <VRow>
+          <VCol
+            cols="12"
+            md="6"
+            mb="9"
           >
-            <VRow class="justify-center">
-              <VCol
-                cols="12"
-                md="5"
-                class="d-flex flex-row"
-              >
-                <AppTextField
-                  v-model="searchValue"
-                  placeholder="Tìm khách hàng"
-                  :rules="[phoneNumberValidator]"
-                />
-                <VBtn class="ms-2">
-                  Tìm kiếm
-                </VBtn>
-              </VCol>
-            </VRow>
-            <VRow class="justify-center">
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <AppTextField
-                  v-model="fullName"
-                  label="Tên khách hàng"
-                  :rules="[requiredValidator]"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <AppTextField
-                  v-model="email"
-                  label="Email"
-                  :rules="[requiredValidator, emailValidator]"
-                />
-              </VCol>
-            </VRow>
-            <VRow class="justify-center">
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <AppTextField
-                  v-model="phoneNumber"
-                  label="Số điện thoại"
-                  :rules="[requiredValidator, phoneNumberValidator]"
-                />
-              </VCol>
-              <VCol
-                cols="12"
-                md="3"
-              >
-                <AppTextField
-                  v-model="addreess"
-                  label="Địa chỉ"
-                  :rules="[requiredValidator]"
-                />
-              </VCol>
-            </VRow>
-            <VRow class="justify-center">
-              <VCol
-                cols="12"
-                md="2"
-                class="text-end"
-              >
-                <VBtn
-                  block
-                  size="large"
+            <VCardItem>
+              <VRow class="justify-center">
+                <VCol
+                  cols="12"
+                  md="10"
+                  class="d-flex flex-row"
                 >
-                  Huỷ
-                </VBtn>
-              </VCol>
-              <VCol
-                cols="12"
-                md="2"
-              >
-                <VBtn
-                  type="submit"
-                  size="large"
-                  block
-                  @click="refForm?.validate()"
+                  <AppTextField
+                    v-model="searchValue"
+                    placeholder="Tìm khách hàng"
+                  />
+                  <VBtn
+                    class="ms-2"
+                    @click="getUserByPhoneNumber(searchValue)"
+                  >
+                    Tìm kiếm
+                  </VBtn>
+                </VCol>
+              </VRow>
+              <VRow class="justify-center py-2">
+                <div
+                  v-if="user"
+                  class="text-base"
                 >
-                  Đặt
-                </VBtn>
-              </VCol>
-            </VRow>
-          </VForm>
-        </VCardItem>
+                  <h6 class="text-base font-weight-medium mb-2">
+                    Họ và tên
+                  </h6>
+
+                  <p class="mb-1">
+                    {{ user.fullName }}
+                  </p>
+
+                  <VDivider class="my-4" />
+
+                  <h6 class="text-base font-weight-medium mb-2">
+                    Số điện thoại
+                  </h6>
+
+                  <p class="mb-1">
+                    {{ user.phone }}
+                  </p>
+
+                  <VDivider class="my-4" />
+
+                  <h6 class="text-base font-weight-medium mb-2">
+                    Địa chỉ
+                  </h6>
+
+                  <p class="mb-1">
+                    {{ user.address }}
+                  </p>
+                </div>
+                <div
+                  v-else
+                  class="py-2"
+                >
+                  <h6 class="text-base font-weight-medium mb-2">
+                    Không tìm thấy người dùng
+                  </h6>
+
+                  <VBtn
+                    color="success"
+                    :to="{ name: 'user-add' }"
+                  >
+                    Thêm người dùng
+                  </VBtn>
+                </div>
+              </VRow>
+            </VCardItem>
+          </VCol>
+          <VDivider
+            vertical
+            :thickness="2"
+          />
+          <VCol
+            cols="12"
+            md="5"
+            mb="12"
+          >
+            <h3 class="text-base font-weight-medium mb-2">
+              Bến đi
+            </h3>
+            <AppSelect
+              v-model="pickupPoint"
+              :items="stationFrom"
+              class="py-2"
+            >
+              <template #item="{ props, item }">
+                <VListItem
+                  v-bind="props"
+                  :subtitle="item.raw.subtitle"
+                />
+              </template>
+            </AppSelect>
+            <h3 class="text-base font-weight-medium mb-2 pt-15">
+              Bến đến
+            </h3>
+            <AppSelect
+              v-model="dropoffPoint"
+              :items="stationTo"
+              class="py-2"
+            >
+              <template #item="{ props, item }">
+                <VListItem
+                  v-bind="props"
+                  :subtitle="item.raw.subtitle"
+                />
+              </template>
+            </AppSelect>
+          </VCol>
+        </VRow>
+        <Row v-if="error">
+          <VCol
+            cols="12"
+            md="12"
+          >
+            <VAlert
+              color="error"
+              icon="tabler-exclamation-circle"
+            >
+              {{ error }}
+            </VAlert>
+          </VCol>
+        </Row>
+        <VRow class="justify-center py-3">
+          <VCol
+            cols="12"
+            md="2"
+            class="text-end"
+          >
+            <VBtn
+              block
+              variant="outlined"
+              color="secondary"
+              size="large"
+              @click="router.go(-1)"
+            >
+              Huỷ
+            </VBtn>
+          </VCol>
+          <VCol
+            cols="12"
+            md="2"
+          >
+            <VBtn
+              type="submit"
+              size="large"
+              block
+              @click="submit"
+            >
+              Đặt
+            </VBtn>
+          </VCol>
+        </VRow>
       </VCard>
     </VCol>
   </VRow>

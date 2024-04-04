@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { router } from '@/plugins/1.router'
 import $api from '@/utils/api'
+import { useSeatStore } from '@core/stores/seatStore'
 
 interface Region {
   value: number
@@ -35,8 +36,10 @@ const selectedTo = ref('')
 const startDateRange = ref('')
 const selectedTicket = ref()
 const tickets = ref([] as Ticket[])
-const selectedSeats = ref<string[]>([])
+const seatStore = useSeatStore()
 const cities = ref([] as Region[])
+const now = new Date()
+const date = now.toLocaleDateString('fr-CA')
 
 const handleTicketClick = (ticket: any) => {
   if (selectedTicket.value === '') {
@@ -59,7 +62,7 @@ const handleTicketClick = (ticket: any) => {
         t.expanded = true
     })
     selectedTicket.value = ticket.timeTableId
-    selectedSeats.value = []
+    seatStore.clearSeats()
   }
 }
 
@@ -78,15 +81,7 @@ const getColor = (isSelected: any, disabled: any) => {
 }
 
 function handleOnClickSeat(chair: SeatOrder) {
-  const index = selectedSeats.value.indexOf(chair.seatName)
-
-  if (index === -1)
-    selectedSeats.value.push(chair.seatName)
-
-  else
-    selectedSeats.value.splice(index, 1)
-
-  selectedSeats.value.sort()
+  seatStore.toggleSeat(chair)
 }
 
 async function getRegion(parentId: number | null, regionStructureId: number) {
@@ -109,7 +104,12 @@ await getRegion(null, 1)
 
 function handleRedirectConfirmPage(id: number) {
   router.push({
-    name: 'reservation-add-confirm', query: { seatOrders: JSON.stringify(selectedSeats.value), id },
+    name: 'reservation-add-confirm',
+    query: {
+      id,
+      fromId: selectedFrom.value.value,
+      toId: selectedTo.value.value,
+    },
   })
 }
 
@@ -128,9 +128,9 @@ async function searchTicket() {
     tickets.value = valueReponse.data
 }
 function formatToTime(dateTimeString: any) {
-  const date = new Date(dateTimeString)
+  const dateformat = new Date(dateTimeString)
 
-  return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
+  return dateformat.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
 }
 function formatTime(timeString: any) {
   const [hours, minutes] = timeString.split(':')
@@ -180,6 +180,7 @@ function formatTime(timeString: any) {
               v-model="startDateRange"
               label="Ngày khởi hành"
               clear-icon="tabler-x"
+              :config="{ minDate: date }"
               clearable
             />
           </VCol>
@@ -432,7 +433,7 @@ function formatTime(timeString: any) {
                                       >
                                         <VItem
                                           v-slot="{
-                                            toggle = () => {}, isSelected = selectedSeats.value.includes(chair.seatName),
+                                            toggle = () => {}, isSelected,
                                           }"
                                         >
                                           <VCard
@@ -505,7 +506,7 @@ function formatTime(timeString: any) {
                               </VCol>
                             </VRow>
                             <VRow
-                              v-if="selectedSeats.length > 0"
+                              v-if="seatStore.selectedSeats.length > 0"
                               class="align-center"
                             >
                               <VCol
@@ -513,10 +514,10 @@ function formatTime(timeString: any) {
                                 md="6"
                               >
                                 <VSheet class="text-h4">
-                                  {{ selectedSeats.length }} vé
+                                  {{ seatStore.selectedSeats.length }} vé
                                 </VSheet>
                                 <VSheet class="text-h5">
-                                  {{ selectedSeats.join(', ') }}
+                                  {{ seatStore.selectedSeats.join(', ') }}
                                 </VSheet>
                               </VCol>
                               <VSpacer />
@@ -528,7 +529,7 @@ function formatTime(timeString: any) {
                                   Tổng tiền
                                 </VSheet>
                                 <VSheet class="text-h5 text-center text-primary">
-                                  {{ selectedSeats.length * Number(ticket.priceValue) }} vnd
+                                  {{ seatStore.selectedSeats.length * Number(ticket.priceValue) }} vnd
                                 </VSheet>
                               </VCol>
                               <VCol

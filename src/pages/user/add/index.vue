@@ -32,9 +32,8 @@ const add = async () => {
 
   const data = res.data
 
-  console.log(data.respType === '200')
   if (data.respType === 200)
-    router.replace('/user/list')
+    router.go(-1)
 }
 
 const onSubmit = () => {
@@ -49,36 +48,43 @@ const onSubmit = () => {
   })
 }
 
-async function getRegion(parentId: number | null, regionStructureId: number) {
+async function getCity() {
   const res = await $api('/api/region/find', {
     method: 'POST',
     data: {
-      parentId,
-      regionStructureId,
+      parentId: null,
+      regionStructureId: 1,
     },
   })
 
   const data = res.data.valueReponse.data
 
-  if (regionStructureId === 1) {
-    cities.value = data.map((item: { id: any; fullName: any }) => ({
-      value: item.id,
-      title: item.fullName,
-    }))
-  }
-  if (regionStructureId === 2) {
-    districts.value = data.map((item: { id: any; fullName: any }) => ({
-      value: item.id,
-      title: item.fullName,
-    }))
-  }
+  cities.value = data.map((item: { id: any; fullName: any }) => ({
+    value: item.id,
+    title: item.fullName,
+  }))
 }
-await getRegion(null, 1)
-watch(selectedCity, () => {
-  getRegion(selectedCity.value.value, 2)
-})
-watch(district, () => {
-  getRegion(district.value.value, 3)
+
+async function getDistricts(parentId: number | null) {
+  const res = await $api('/api/region/find', {
+    method: 'POST',
+    data: {
+      parentId,
+      regionStructureId: 2,
+    },
+  })
+
+  const data = res.data.valueReponse.data
+
+  districts.value = data.map((item: { id: any; fullName: any }) => ({
+    value: item.id,
+    title: item.fullName,
+  }))
+}
+await getCity()
+watch(selectedCity, async () => {
+  if (typeof selectedCity.value.value === 'number')
+    await getDistricts(selectedCity.value.value)
 })
 </script>
 
@@ -178,7 +184,7 @@ watch(district, () => {
               type="reset"
               variant="outlined"
               color="secondary"
-              to="list"
+              @click="router.go(-1)"
             >
               Trở lại
             </VBtn>

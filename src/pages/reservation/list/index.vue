@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
+import $api from '@/utils/api'
 import { paginationMeta } from '@api-utils/paginationMeta'
 
-type invoiceStatus = 'Active' | 'Inactive' | null
-
-const searchQuery = ref('')
-const orderDateRange = ref('')
-const startDateRange = ref('')
-const selectedStatus = ref<invoiceStatus>(null)
-const selectedRows = ref<string[]>([])
+const selectedStatus = ref('')
+const selectedFromDate = ref('')
+const selectedToDate = ref('')
 
 // Data table options
-const itemsPerPage = ref(10)
+const itemPerPage = ref(10)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
@@ -19,77 +16,55 @@ const orderBy = ref()
 // Update data table options
 const updateOptions = (options: any) => {
   page.value = options.page
-  sortBy.value = options.sortBy[0]?.key
-  orderBy.value = options.sortBy[0]?.order
+  sortBy.value = options.sortBy[0]?.order
+  orderBy.value = options.sortBy[0]?.key
 }
 
 // 👉 headers
 const headers = [
-  { title: 'Mã', key: 'id' },
-  { title: 'Người đặt', key: 'client.fullName' },
-  { title: 'Ngày đặt', key: 'orderDate' },
-  { title: 'Ngày khởi hành', key: 'startDate' },
-  { title: 'Tổng tiền', key: 'total' },
+  { title: 'Code', key: 'code' },
+  { title: 'Tên người đặt', key: 'userName' },
+  { title: 'Trạng thái thanh toán', key: 'payStatus' },
   { title: 'Trạng thái', key: 'status' },
   { title: 'Hành động', key: 'actions', sortable: false },
 ]
 
-const selectedOrderDateRange = computed(() => {
-  const [start, end] = orderDateRange.value ? orderDateRange.value.split('to') : ''
-
-  return {
-    start,
-    end,
-  }
-})
-
-const selectedStartDateRange = computed(() => {
-  const [start, end] = startDateRange.value ? startDateRange.value.split('to') : ''
-
-  return {
-    start,
-    end,
-  }
-})
+const status = [
+  { title: 'Active', value: 1 },
+  { title: 'Inactive', value: 0 },
+]
 
 // 👉 Fetch Invoices
-const { data: invoiceData, execute: fetchInvoices } = await useApi<any>(createUrl('/apps/invoice', {
+const { data: orderData, execute: fetchInvoices } = await useApi<any>(createUrl('/api/order/find', {
   query: {
-    q: searchQuery,
     status: selectedStatus,
-    selectedOrderDateRange,
-    selectedStartDateRange,
-    itemsPerPage,
-    page,
+    fromDate: selectedFromDate,
+    toDate: selectedToDate,
+    itemPerPage,
+    page: page.value - 1,
     sortBy,
     orderBy,
   },
 }))
 
-const invoices = computed(() => invoiceData.value.invoices)
-const totalInvoices = computed(() => invoiceData.value.totalInvoices)
+const promotions = computed(() => orderData.value.valueReponse.data.content)
+const totalPromotions = computed(() => orderData.value.valueReponse.data.totalElements)
 
-const resolveUserStatusVariant = (stat: string) => {
-  const statLowerCase = stat.toLowerCase()
-  if (statLowerCase === 'active')
-    return 'success'
-  if (statLowerCase === 'inactive')
-    return 'secondary'
-
-  return 'primary'
+const resolveUserStatusVariant = (stat: number) => {
+  const statLowerCase = stat
+  if (statLowerCase === 1)
+    return { color: 'success', value: 'active' }
+  if (statLowerCase === 0)
+    return { color: 'secondary', value: 'inactive' }
 }
 
-const computedMoreList = computed(() => {
-  return (paramId: number) => ([
-    { title: 'Download', value: 'download', prependIcon: 'tabler-download' },
-    {
-      title: 'Edit',
-      value: 'edit',
-      prependIcon: 'tabler-pencil',
-      to: { name: 'apps-invoice-edit-id', params: { id: paramId } },
-    },
-  ])
-})
+const resolvePayVariant = (stat: number) => {
+  const statLowerCase = stat
+  if (statLowerCase === 1)
+    return { color: 'success', value: 'đã thanh toán' }
+  if (statLowerCase === 0)
+    return { color: 'secondary', value: 'chưa thanh toán' }
+}
 
 // 👉 Delete Invoice
 const deleteInvoice = async (id: number) => {
@@ -100,7 +75,7 @@ const deleteInvoice = async (id: number) => {
 </script>
 
 <template>
-  <section v-if="invoices">
+  <section v-if="promotions">
     <!-- 👉 Invoice Filters  -->
     <VCard
       title="Bộ lọc"
@@ -119,7 +94,7 @@ const deleteInvoice = async (id: number) => {
               placeholder="Chọn trạng thái"
               clearable
               clear-icon="tabler-x"
-              :items="['Active', 'Inactive']"
+              :items="status"
             />
           </VCol>
 
@@ -129,11 +104,10 @@ const deleteInvoice = async (id: number) => {
             md="4"
           >
             <AppDateTimePicker
-              v-model="orderDateRange"
-              label="Ngày đặt"
+              v-model="selectedFromDate"
+              label="Ngày bắt đầu"
               clear-icon="tabler-x"
               clearable
-              :config="{ mode: 'range' }"
               placeholder="Chọn ngày"
             />
           </VCol>
@@ -144,11 +118,10 @@ const deleteInvoice = async (id: number) => {
             md="4"
           >
             <AppDateTimePicker
-              v-model="startDateRange"
-              label="Ngày khởi hành"
+              v-model="selectedToDate"
+              label="Ngày kết thúc"
               clear-icon="tabler-x"
               clearable
-              :config="{ mode: 'range' }"
               placeholder="Chọn ngày"
             />
           </VCol>
@@ -160,46 +133,26 @@ const deleteInvoice = async (id: number) => {
       <VCardText class="d-flex align-center flex-wrap gap-4">
         <div class="me-3 d-flex gap-3 align-center">
           <AppSelect
-            :model-value="itemsPerPage"
+            :model-value="itemPerPage"
             :items="[
               { value: 10, title: '10' },
               { value: 25, title: '25' },
               { value: 50, title: '50' },
               { value: 100, title: '100' },
-              { value: -1, title: 'All' },
+              { value: -1, title: 'Tất cả' },
             ]"
-            style="inline-size: 6.25rem;"
-            @update:model-value="itemsPerPage = parseInt($event, 10)"
+            style="inline-size: 8rem;"
+            @update:model-value="itemPerPage = parseInt($event, 10)"
           />
         </div>
 
         <VSpacer />
 
         <div class="d-flex align-center flex-wrap gap-4">
-          <!-- 👉 Search  -->
-          <div class="invoice-list-filter">
-            <AppTextField
-              v-model="searchQuery"
-              placeholder="Tìm kiếm"
-              density="compact"
-            />
-          </div>
-
-          <!-- 👉 Select status -->
-          <div class="invoice-list-filter">
-            <AppSelect
-              v-model="selectedStatus"
-              placeholder="Chọn trạng thái"
-              clearable
-              clear-icon="tabler-x"
-              single-line
-              :items="['Active', 'Inactive']"
-            />
-          </div>
           <!-- 👉 Create invoice -->
           <VBtn
             prepend-icon="tabler-plus"
-            :to="{ name: 'reservation-add' }"
+            to="add"
           >
             Đặt vé
           </VBtn>
@@ -209,45 +162,35 @@ const deleteInvoice = async (id: number) => {
 
       <!-- SECTION Datatable -->
       <VDataTableServer
-        v-model="selectedRows"
-        v-model:items-per-page="itemsPerPage"
+        v-model:items-per-page="itemPerPage"
         v-model:page="page"
-        :items-length="totalInvoices"
+        :items-length="totalPromotions"
+        :items="promotions"
         :headers="headers"
-        :items="invoices"
         class="text-no-wrap"
         @click:row="(item) => console.log(item)"
         @update:options="updateOptions"
       >
-        <!-- ID -->
-        <template #item.id="{ item }">
-          {{ item.id }}
-        </template>
-
-        <!-- Total -->
-        <template #item.total="{ item }">
-          {{ item.total }} vnd
-        </template>
-
-        <!-- Order Date -->
-        <template #item.orderDate="{ item }">
-          {{ item.orderDate }}
-        </template>
-
-        <!-- Start Date -->
-        <template #item.startdate="{ item }">
-          {{ item.startdate }}
+        <template #item.payStatus="{ item }">
+          <VChip
+            :color="resolvePayVariant(item.isPay)?.color"
+            size="small"
+            label
+            class="text-capitalize"
+          >
+            {{ resolvePayVariant(item.isPay)?.value }}
+          </VChip>
         </template>
 
         <!-- Status -->
         <template #item.status="{ item }">
           <VChip
-            :color="resolveUserStatusVariant(item.status)"
+            :color="resolveUserStatusVariant(item.status)?.color"
             size="small"
             label
             class="text-capitalize"
           >
-            {{ item.status }}
+            {{ resolveUserStatusVariant(item.status)?.value }}
           </VChip>
         </template>
 
@@ -257,11 +200,9 @@ const deleteInvoice = async (id: number) => {
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <MoreBtn
-            :menu-list="computedMoreList(item.id)"
-            item-props
-            color="undefined"
-          />
+          <IconBtn :to="{ name: 'promotion-edit-id', params: { id: item.id } }">
+            <VIcon icon="tabler-edit" />
+          </IconBtn>
         </template>
 
         <!-- pagination -->
@@ -270,13 +211,13 @@ const deleteInvoice = async (id: number) => {
           <VDivider />
           <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemsPerPage }, totalInvoices) }}
+              {{ paginationMeta({ page, itemPerPage }, totalPromotions) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalInvoices / itemsPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalInvoices / itemsPerPage)"
+              :length="Math.ceil(totalPromotions / itemPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalPromotions / itemPerPage)"
             >
               <template #prev="slotProps">
                 <VBtn

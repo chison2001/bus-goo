@@ -133,10 +133,10 @@ async function deleteDetailAPI(id: number) {
 }
 
 function save() {
-  refFormDetail.value?.validate().then(({ valid }) => {
+  refFormDetail.value?.validate().then(async ({ valid }) => {
     if (valid) {
-      saveDetail()
-      location.reload()
+      await saveDetail()
+      await getDetails()
       close()
       nextTick(() => {
         refFormDetail.value?.reset()

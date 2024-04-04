@@ -19,15 +19,15 @@ definePage({
   <div class="misc-wrapper">
     <ErrorHeader
       status-code="404"
-      title="Page Not Found ⚠️"
-      description="We couldn't find the page you are looking for."
+      title="Không tìm thấy trang⚠️"
+      description="Chúng tôi không tìm thấy trang bạn đang tìm kiếm!!"
     />
 
     <VBtn
-      to="/"
+      to="/dashboard"
       class="mb-12"
     >
-      Back to Home
+      Trở về trang chủ
     </VBtn>
 
     <!-- 👉 Image -->

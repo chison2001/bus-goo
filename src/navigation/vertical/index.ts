@@ -41,6 +41,11 @@ export default [
     to: { name: 'schedule-list' },
     icon: { icon: 'tabler-alarm' },
   },
+  {
+    title: 'Bến xe',
+    to: { name: 'station-list' },
+    icon: { icon: 'tabler-alarm' },
+  },
   { heading: 'Quản lí giao dịch' },
   {
     title: 'Đơn hàng',
@@ -49,7 +54,7 @@ export default [
   },
   {
     title: 'Hoá đơn',
-    to: { name: 'reservation-list' },
+    to: { name: 'second-page' },
     icon: { icon: 'tabler-file' },
   },
 ]
