@@ -582,7 +582,7 @@ async function submit() {
               variant="outlined"
               color="secondary"
               size="large"
-              @click="router.go(-1)"
+              @click="router.go(-1); seatStore.clearSeats()"
             >
               Huỷ
             </VBtn>

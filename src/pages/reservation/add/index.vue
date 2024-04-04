@@ -15,27 +15,8 @@ interface SeatOrder {
   orderDetailId: number
   isAvailable: boolean
 }
-interface Ticket {
-  timeTableId: number
-  timeStated: string
-  priceDetailId: number
-  priceValue: number
-  countEmptySeat: number
-  routeId: number
-  typeBusName: string
-  transferTime: string
-  fromName: string
-  toName: string
-  expanded: boolean
-  endTime: string
-  seatOrder: SeatOrder[]
-}
 
-const selectedFrom = ref('')
-const selectedTo = ref('')
-const startDateRange = ref('')
 const selectedTicket = ref()
-const tickets = ref([] as Ticket[])
 const seatStore = useSeatStore()
 const cities = ref([] as Region[])
 const now = new Date()
@@ -44,7 +25,7 @@ const date = now.toLocaleDateString('fr-CA')
 const handleTicketClick = (ticket: any) => {
   if (selectedTicket.value === '') {
     selectedTicket.value = ticket.timeTableId
-    tickets.value.forEach(t => {
+    seatStore.tickets.forEach(t => {
       if (t.timeTableId !== ticket.timeTableId)
         t.expanded = false
       else
@@ -55,7 +36,7 @@ const handleTicketClick = (ticket: any) => {
   }
 
   if (ticket.timeTableId !== selectedTicket.value) {
-    tickets.value.forEach(t => {
+    seatStore.tickets.forEach(t => {
       if (t.timeTableId !== ticket.timeTableId)
         t.expanded = false
       else
@@ -107,8 +88,8 @@ function handleRedirectConfirmPage(id: number) {
     name: 'reservation-add-confirm',
     query: {
       id,
-      fromId: selectedFrom.value.value,
-      toId: selectedTo.value.value,
+      fromId: seatStore.selectedFrom.value,
+      toId: seatStore.selectedTo.value,
     },
   })
 }
@@ -117,15 +98,15 @@ async function searchTicket() {
   const res = await $api('/api/bustrip/get', {
     method: 'GET',
     params: {
-      fromId: selectedFrom.value.value,
-      toId: selectedTo.value.value,
-      timeStarted: startDateRange.value,
+      fromId: seatStore.selectedFrom.value,
+      toId: seatStore.selectedTo.value,
+      timeStarted: seatStore.startDateRange,
     },
   })
 
   const { respType, valueReponse } = res.data
   if (respType === 200)
-    tickets.value = valueReponse.data
+    seatStore.tickets = valueReponse.data
 }
 function formatToTime(dateTimeString: any) {
   const dateformat = new Date(dateTimeString)
@@ -153,7 +134,7 @@ function formatTime(timeString: any) {
             md="3"
           >
             <AppCombobox
-              v-model="selectedFrom"
+              v-model="seatStore.selectedFrom"
               :items="cities"
               label="Điểm đi"
             />
@@ -165,7 +146,7 @@ function formatTime(timeString: any) {
             md="3"
           >
             <AppCombobox
-              v-model="selectedTo"
+              v-model="seatStore.selectedTo"
               :items="cities"
               label="Điểm đến"
             />
@@ -177,7 +158,7 @@ function formatTime(timeString: any) {
             md="4"
           >
             <AppDateTimePicker
-              v-model="startDateRange"
+              v-model="seatStore.startDateRange"
               label="Ngày khởi hành"
               clear-icon="tabler-x"
               :config="{ minDate: date }"
@@ -261,7 +242,7 @@ function formatTime(timeString: any) {
         <VCard>
           <VList lines="three">
             <template
-              v-for="(ticket, index) of tickets"
+              v-for="(ticket, index) of seatStore.tickets"
               :key="ticket.timeTableId"
             >
               <VListItem>
