@@ -53,6 +53,7 @@ declare module 'vue-router/auto/routes' {
     'reservation-add': RouteRecordInfo<'reservation-add', '/reservation/add', Record<never, never>, Record<never, never>>,
     'reservation-add-confirm': RouteRecordInfo<'reservation-add-confirm', '/reservation/add/confirm', Record<never, never>, Record<never, never>>,
     'reservation-list': RouteRecordInfo<'reservation-list', '/reservation/list', Record<never, never>, Record<never, never>>,
+    'reservation-view-id': RouteRecordInfo<'reservation-view-id', '/reservation/view/:id', { id: ParamValue<true> }, { id: ParamValue<false> }>,
     'route-add': RouteRecordInfo<'route-add', '/route/add', Record<never, never>, Record<never, never>>,
     'route-list': RouteRecordInfo<'route-list', '/route/list', Record<never, never>, Record<never, never>>,
     'schedule-add': RouteRecordInfo<'schedule-add', '/schedule/add', Record<never, never>, Record<never, never>>,

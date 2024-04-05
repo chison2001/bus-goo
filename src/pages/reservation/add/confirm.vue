@@ -63,6 +63,10 @@ const pickupPoint = ref()
 const dropoffPoint = ref()
 const error = ref()
 const promotion = ref<Promotion>()
+const message = ref()
+const dialog = ref(false)
+const dialogConfirmPayment = ref(false)
+const orderId = ref(-1)
 
 async function getTicket() {
   const res = await $api('/api/bustrip/get-bus-trip', {
@@ -202,7 +206,16 @@ async function submit() {
     },
   })
 
-  const { respType } = response.data
+  const { respType, responseMsg, valueReponse } = response.data
+
+  if (respType === 200) {
+    orderId.value = valueReponse.data.orderId
+    dialogConfirmPayment.value = true
+  }
+  else {
+    message.value = responseMsg
+    dialog.value = true
+  }
 }
 
 function formatDateString(dateString: string) {
@@ -218,6 +231,28 @@ function formatDateString(dateString: string) {
 
 function formatPrice(value: number) {
   return `${value.toLocaleString('vi-VN')} VNĐ`
+}
+
+async function Payment() {
+  if (orderId.value !== -1) {
+    const response = await $api('/payment', {
+      method: 'GET',
+      params: {
+        orderId: orderId.value,
+        paymentType: 'CASH',
+      },
+    })
+
+    const { respType, responseMsg } = response.data
+
+    if (respType === 200) {
+      router.push({ name: 'reservation-view-id', params: { id: orderId.value } })
+    }
+    else {
+      message.value = responseMsg
+      dialog.value = true
+    }
+  }
 }
 </script>
 
@@ -439,4 +474,53 @@ function formatPrice(value: number) {
       </VCard>
     </VCol>
   </VRow>
+  <VDialog
+    v-model="dialog"
+    max-width="500px"
+  >
+    <VCard>
+      <VCardTitle class="text-h5">
+        {{ message }}
+      </VCardTitle>
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="blue-darken-1"
+          variant="text"
+          @click="dialog = false"
+        >
+          Cancel
+        </VBtn>
+        <VSpacer />
+      </VCardActions>
+    </VCard>
+  </VDialog>
+  <VDialog
+    v-model="dialogConfirmPayment"
+    max-width="500px"
+  >
+    <VCard>
+      <VCardTitle class="text-h5">
+        Bạn đã nhận được tiền từ khách hàng chưa?
+      </VCardTitle>
+      <VCardActions>
+        <VSpacer />
+        <VBtn
+          color="blue-darken-1"
+          variant="text"
+          :to="{ name: 'reservation-view-id', params: { id: orderId } }"
+        >
+          Cancel
+        </VBtn>
+        <VBtn
+          color="blue-darken-1"
+          variant="text"
+          @click="Payment"
+        >
+          OK
+        </VBtn>
+        <VSpacer />
+      </VCardActions>
+    </VCard>
+  </VDialog>
 </template>

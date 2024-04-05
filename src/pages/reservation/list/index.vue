@@ -10,7 +10,7 @@ const selectedFromDate = ref('')
 const selectedToDate = ref('')
 
 // Data table options
-const itemPerPage = ref(10)
+const itemPerPage = ref(25)
 const page = ref(1)
 const sortBy = ref()
 const orderBy = ref()
@@ -55,7 +55,7 @@ const { data: orderData, execute: fetchInvoices } = await useApi<any>(createUrl(
 }))
 
 const promotions = computed(() => orderData.value.valueReponse.data.content)
-const totalPromotions = computed(() => orderData.value.valueReponse.data.totalElements)
+const totalOrder = computed(() => orderData.value.valueReponse.data.totalElements)
 
 const resolveUserStatusVariant = (stat: number) => {
   const statLowerCase = stat
@@ -171,7 +171,7 @@ const deleteInvoice = async (id: number) => {
       <VDataTableServer
         v-model:items-per-page="itemPerPage"
         v-model:page="page"
-        :items-length="totalPromotions"
+        :items-length="totalOrder"
         :items="promotions"
         :headers="headers"
         class="text-no-wrap"
@@ -207,7 +207,7 @@ const deleteInvoice = async (id: number) => {
             <VIcon icon="tabler-trash" />
           </IconBtn>
 
-          <IconBtn :to="{ name: 'promotion-edit-id', params: { id: item.id } }">
+          <IconBtn :to="{ name: 'reservation-view-id', params: { id: item.id } }">
             <VIcon icon="tabler-eye" />
           </IconBtn>
         </template>
@@ -218,13 +218,13 @@ const deleteInvoice = async (id: number) => {
           <VDivider />
           <div class="d-flex align-center justify-sm-space-between justify-center flex-wrap gap-3 pa-5 pt-3">
             <p class="text-sm text-disabled mb-0">
-              {{ paginationMeta({ page, itemPerPage }, totalPromotions) }}
+              {{ paginationMeta({ page, itemPerPage }, totalOrder) }}
             </p>
 
             <VPagination
               v-model="page"
-              :length="Math.ceil(totalPromotions / itemPerPage)"
-              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalPromotions / itemPerPage)"
+              :length="Math.ceil(totalOrder / itemPerPage)"
+              :total-visible="$vuetify.display.xs ? 1 : Math.ceil(totalOrder / itemPerPage)"
             >
               <template #prev="slotProps">
                 <VBtn
