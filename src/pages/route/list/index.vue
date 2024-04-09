@@ -39,7 +39,6 @@ const headers = [
   { title: 'Điểm đến', key: 'to.fullName' },
   { title: 'Thời gian chạy', key: 'transferTime' },
   { title: 'Trạng thái', key: 'status' },
-  { title: 'Hành động', key: 'actions', sortable: false },
 ]
 
 const status = [

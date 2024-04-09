@@ -63,10 +63,16 @@ const pickupPoint = ref()
 const dropoffPoint = ref()
 const error = ref()
 const promotion = ref<Promotion>()
-const message = ref()
-const dialog = ref(false)
 const dialogConfirmPayment = ref(false)
 const orderId = ref(-1)
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
+const link = ref('')
 
 async function getTicket() {
   const res = await $api('/api/bustrip/get-bus-trip', {
@@ -135,6 +141,7 @@ async function getStationFrom() {
     title: item.name,
     subtitle: `${item.addressDescription}, ${item.address}`,
   }))
+  pickupPoint.value = stationFrom.value[0].value
 }
 
 async function getStationTo() {
@@ -157,6 +164,7 @@ async function getStationTo() {
     title: item.name,
     subtitle: `${item.addressDescription}, ${item.address}`,
   }))
+  dropoffPoint.value = stationTo.value[0].value
 }
 
 await getStationFrom()
@@ -169,7 +177,6 @@ async function submit() {
 
     return
   }
-  console.log(user.value)
   if (user.value?.userId === undefined) {
     error.value = 'Vui lòng thêm thông tin người dùng'
 
@@ -210,11 +217,12 @@ async function submit() {
 
   if (respType === 200) {
     orderId.value = valueReponse.data.orderId
-    dialogConfirmPayment.value = true
   }
   else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
     message.value = responseMsg
-    dialog.value = true
+    resErr.value = true
   }
 }
 
@@ -234,6 +242,8 @@ function formatPrice(value: number) {
 }
 
 async function Payment() {
+  dialogConfirmPayment.value = true
+  await submit()
   if (orderId.value !== -1) {
     const response = await $api('/payment', {
       method: 'GET',
@@ -246,11 +256,17 @@ async function Payment() {
     const { respType, responseMsg } = response.data
 
     if (respType === 200) {
-      router.push({ name: 'reservation-view-id', params: { id: orderId.value } })
+      isDialogVisible.value = true
+      title.value = 'Thông báo'
+      message.value = 'Thanh toán thành công'
+      link.value = `/reservation/view/${orderId.value}`
+      resErr.value = false
     }
     else {
+      isDialogVisible.value = true
+      title.value = 'Đã xảy ra lỗi'
       message.value = responseMsg
-      dialog.value = true
+      resErr.value = true
     }
   }
 }
@@ -260,37 +276,88 @@ async function Payment() {
   <VRow>
     <VCol
       cols="12"
-      md="8"
+      md="7"
     >
-      <VCard>
-        <VCardText class="text-h4 font-weight-bold">
-          Thông tin lượt đi
-        </VCardText>
-        <VCardText>
-          <VRow class="justify-center">
-            <div
-              v-if="ticket"
-              class="text-base"
-            >
-              <p>
-                Tuyến xe:<span class="font-weight-bold"> {{ `${ticket.fromName} - ${ticket.toName}` }}</span>
-              </p>
-              <p>
-                Thời gian xuất bến: <span class="font-weight-bold">{{ formatDateString(ticket.timeStated) }}</span>
-              </p>
-              <p>
-                Số lượng ghế: <span class="font-weight-bold">{{ seatStore.selectedSeats.length }} Ghế</span>
-              </p>
-              <p>
-                Số ghế: <span class="font-weight-bold">{{ seatStore.selectedSeats.join(', ') }}</span>
-              </p>
-              <p>
-                Tổng tiền lượt đi: <span class="font-weight-bold">{{ formatPrice(seatStore.selectedSeats.length * Number(ticket.priceValue)) }}</span>
-              </p>
-            </div>
-          </VRow>
-        </VCardText>
-      </VCard>
+      <VRow>
+        <VCol
+          cols="12"
+          md="6"
+        >
+          <VCard>
+            <VCardText class="text-h4 font-weight-bold">
+              Thông tin lượt đi
+            </VCardText>
+            <VCardText>
+              <VRow class="justify-center">
+                <div
+                  v-if="ticket"
+                  class="text-base"
+                >
+                  <p>
+                    Tuyến xe:<span class="font-weight-bold"> {{ `${ticket.fromName} - ${ticket.toName}` }}</span>
+                  </p>
+                  <p>
+                    Thời gian xuất bến: <span class="font-weight-bold">{{ formatDateString(ticket.timeStated) }}</span>
+                  </p>
+                  <p>
+                    Số lượng ghế: <span class="font-weight-bold">{{ seatStore.selectedSeats.length }} Ghế</span>
+                  </p>
+                  <p>
+                    Số ghế: <span class="font-weight-bold">{{ seatStore.selectedSeats.join(', ') }}</span>
+                  </p>
+                  <p>
+                    Tổng tiền lượt đi: <span class="font-weight-bold">{{ formatPrice(seatStore.selectedSeats.length * Number(ticket.priceValue)) }}</span>
+                  </p>
+                </div>
+              </VRow>
+            </VCardText>
+          </VCard>
+        </VCol>
+        <VCol
+          cols="12"
+          md="6"
+        >
+          <VCard height="285">
+            <VCardTitle class="text-h4 font-weight-bold mt-4">
+              Thông tin khuyến mãi
+            </VCardTitle>
+            <VCardText class="text-body-1">
+              <div v-if="promotion">
+                <p>
+                  Tên chương trình: <span class="font-weight-bold">  {{ promotion?.promotionLineName }} </span>
+                </p>
+                <div
+                  v-if="promotion?.promotionType === 1"
+                  class="promotion-details"
+                >
+                  <div>
+                    <div class="condition">
+                      Giá mua tối thiểu để áp dụng <span class="font-weight-bold"> {{ formatPrice(promotion.conditionApply) }} </span>
+                    </div>
+                    <div class="discount">
+                      Được giảm <span class="font-weight-bold">  {{ formatPrice(promotion.discount) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  v-if="promotion?.promotionType === 2"
+                  class="promotion-details"
+                >
+                  <div>
+                    <div class="discount">
+                      Giảm ngay<span class="font-weight-bold">  {{ promotion.discount }}</span> % khi đặt vé
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else>
+                <p>Không có chương trình khuyến mãi nào đang hoạt động!</p>
+              </div>
+            </VCardText>
+          </VCard>
+        </VCol>
+      </VRow>
       <VCard class="my-7">
         <VCardTitle class="text-h4 font-weight-bold mt-4">
           Thông tin khách hàng
@@ -347,95 +414,13 @@ async function Payment() {
             </div>
           </VRow>
         </VCardItem>
-        <Row v-if="error">
-          <VCol
-            cols="12"
-            md="12"
-          >
-            <VAlert
-              color="error"
-              icon="tabler-exclamation-circle"
-            >
-              {{ error }}
-            </VAlert>
-          </VCol>
-        </Row>
-        <VRow class="justify-center py-3">
-          <VCol
-            cols="12"
-            md="2"
-            class="text-end"
-          >
-            <VBtn
-              block
-              variant="outlined"
-              color="secondary"
-              rounded="lg"
-              @click="router.go(-1)"
-            >
-              Trở lại
-            </VBtn>
-          </VCol>
-          <VCol
-            cols="12"
-            md="2"
-          >
-            <VBtn
-              type="submit"
-              rounded="lg"
-              block
-              @click="submit"
-            >
-              Đặt
-            </VBtn>
-          </VCol>
-        </VRow>
       </VCard>
     </VCol>
     <VCol
       cols="12"
-      md="4"
+      md="5"
     >
       <VCard>
-        <VCardTitle class="text-h4 font-weight-bold mt-4">
-          Thông tin khuyến mãi
-        </VCardTitle>
-        <VCardText class="text-body-1">
-          <div v-if="promotion">
-            <p>
-              Tên chương trình: <span class="font-weight-bold">  {{ promotion?.promotionLineName }} </span>
-            </p>
-            <div
-              v-if="promotion?.promotionType === 1"
-              class="promotion-details"
-            >
-              <div>
-                <div class="condition">
-                  Giá mua tối thiểu để áp dụng <span class="font-weight-bold"> {{ formatPrice(promotion.conditionApply) }} </span>
-                </div>
-                <div class="discount">
-                  Được giảm <span class="font-weight-bold">  {{ formatPrice(promotion.discount) }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              v-if="promotion?.promotionType === 2"
-              class="promotion-details"
-            >
-              <div>
-                <div class="discount">
-                  Giảm ngay<span class="font-weight-bold">  {{ promotion.discount }}</span> % khi đặt vé
-                </div>
-              </div>
-            </div>
-          </div>
-          <div v-else>
-            <p>Không có chương trình khuyến mãi nào đang hoạt động!</p>
-          </div>
-        </VCardText>
-      </VCard>
-      <VCard class="my-7">
         <VCardTitle class="text-h4 font-weight-bold mt-4">
           Thông tin đón trả
         </VCardTitle>
@@ -471,37 +456,71 @@ async function Payment() {
             </template>
           </AppSelect>
         </VCardItem>
+        <Row v-if="error">
+          <VCol
+            cols="12"
+            md="12"
+          >
+            <VAlert
+              color="error"
+              icon="tabler-exclamation-circle"
+            >
+              {{ error }}
+            </VAlert>
+          </VCol>
+        </Row>
+        <VRow class="justify-center py-3">
+          <VCol
+            cols="12"
+            md="3"
+            class="text-end"
+          >
+            <VBtn
+              block
+              variant="outlined"
+              color="secondary"
+              rounded="lg"
+              @click="router.go(-1)"
+            >
+              Trở lại
+            </VBtn>
+          </VCol>
+          <VCol
+            cols="12"
+            md="3"
+          >
+            <VBtn
+              type="submit"
+              rounded="lg"
+              block
+              @click="submit(); router.push('/reservation/list')"
+            >
+              Đặt
+            </VBtn>
+          </VCol>
+          <VCol
+            cols="12"
+            md="4"
+          >
+            <VBtn
+              rounded="lg"
+              block
+              @click="Payment"
+            >
+              Thanh toán
+            </VBtn>
+          </VCol>
+        </VRow>
       </VCard>
     </VCol>
   </VRow>
-  <VDialog
-    v-model="dialog"
-    max-width="500px"
-  >
-    <VCard>
-      <VCardTitle class="text-h5">
-        {{ message }}
-      </VCardTitle>
-      <VCardActions>
-        <VSpacer />
-        <VBtn
-          color="blue-darken-1"
-          variant="text"
-          @click="dialog = false"
-        >
-          Cancel
-        </VBtn>
-        <VSpacer />
-      </VCardActions>
-    </VCard>
-  </VDialog>
   <VDialog
     v-model="dialogConfirmPayment"
     max-width="500px"
   >
     <VCard>
       <VCardTitle class="text-h5">
-        Bạn đã nhận được tiền từ khách hàng chưa?
+        Xác nhận thanh toán
       </VCardTitle>
       <VCardActions>
         <VSpacer />
@@ -523,4 +542,12 @@ async function Payment() {
       </VCardActions>
     </VCard>
   </VDialog>
+  <ReponseDialog
+    :is-dialog-visible="isDialogVisible"
+    :title="title"
+    :message="message"
+    :link="link"
+    :is-error="resErr"
+    @update:is-dialog-visible="handleDialogVisibility"
+  />
 </template>

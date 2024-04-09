@@ -7,6 +7,13 @@ const searchQuery = ref('')
 const selectedStatus = ref('')
 const selectedFromDate = ref('')
 const selectedToDate = ref('')
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
 
 // Data table options
 const itemPerPage = ref(10)
@@ -63,8 +70,21 @@ const resolveUserStatusVariant = (stat: number) => {
 
 // 👉 Delete Invoice
 const deleteInvoice = async (id: number) => {
-  await $api(`/apps/invoice/${id}`, { method: 'DELETE' })
+  const res = await $api(`/apps/invoice/${id}`, { method: 'DELETE' })
 
+  const data = res.data
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Xoá khuyến mãi thành công'
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
   fetchInvoices()
 }
 </script>
@@ -274,6 +294,14 @@ const deleteInvoice = async (id: number) => {
       <VCardTitle>Không tìm thấy hoá đơn!!</VCardTitle>
     </VCard>
   </section>
+  <ReponseDialog
+    :is-dialog-visible="isDialogVisible"
+    :title="title"
+    :message="message"
+    link="/promotion/list"
+    :is-error="resErr"
+    @update:is-dialog-visible="handleDialogVisibility"
+  />
 </template>
 
 <style lang="scss">

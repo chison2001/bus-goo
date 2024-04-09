@@ -12,6 +12,13 @@ const itemPerPage = ref(10)
 const page = ref(1)
 const sortBy = ref('dsc')
 const orderBy = ref('userId')
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
 
 // Update data table options
 const updateOptions = (options: any) => {
@@ -64,9 +71,23 @@ const resolveUserStatusVariant = (stat: number) => {
 
 // 👉 Delete user
 const deleteUser = async (userId: number) => {
-  await $api(`/api/user/delete/${userId}`, {
+  const reponse = await $api(`/api/user/delete/${userId}`, {
     method: 'DELETE',
   })
+
+  const { respType, responseMsg } = reponse.data
+  if (respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Xoá người dùng thành công'
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = responseMsg
+    resErr.value = true
+  }
 
   // refetch User
   // TODO: Make this async
@@ -229,6 +250,14 @@ const deleteUser = async (userId: number) => {
     </VCard>
     <!-- 👉 Add New User -->
   </section>
+  <ReponseDialog
+    :is-dialog-visible="isDialogVisible"
+    :title="title"
+    :message="message"
+    link="/user/list"
+    :is-error="resErr"
+    @update:is-dialog-visible="handleDialogVisibility"
+  />
 </template>
 
 <style lang="scss">

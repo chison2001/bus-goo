@@ -14,6 +14,14 @@ const refForm = ref<VForm>()
 const isFormLineValid = ref(false)
 const refFormLine = ref<VForm>()
 const newPromoLines = ref([] as PromoLine[])
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+const link = ref()
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
 
 const promoTypes = [{
   value: 1,
@@ -39,7 +47,6 @@ const discount = ref('')
 const maxdiscount = ref()
 const conditionApply = ref()
 const route = useRoute('promotion-edit-id')
-const router = useRouter()
 const checkPromoType = ref(true)
 
 watch(promoTypeValue, () => {
@@ -92,8 +99,19 @@ const update = async () => {
 
   const data = res.data
 
-  if (data.respType === 200)
-    router.replace('/promotion/list')
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Chỉnh sửa khuyến mãi thành công'
+    link.value = '/promotion/list'
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
 }
 
 const onSubmit = () => {
@@ -176,8 +194,8 @@ async function getLineByID(id: number) {
   }
 }
 function addLine() {
-  editedLineIndex = -1
-  editedDetailIndex = -1
+  editedLineIndex = null
+  editedDetailIndex = null
   dialogLine.value = true
 }
 
@@ -196,9 +214,26 @@ function deleteLine(id: any) {
 
 // Function to confirm deletion of promo line
 async function deleteLineConfirm() {
-  await $api(`/api/promotion/delete-line/${deletedId}`, {
+  const res = await $api(`/api/promotion/delete-line/${deletedId}`, {
     method: 'DELETE',
   })
+
+  const data = res.data
+
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Xoá dòng khuyến mãi thành công'
+    link.value = `/promotion/edit/${route.params.id}`
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
+
   deletedId = -1
   closeLineDelete()
   await getLines()
@@ -230,11 +265,22 @@ async function saveLine() {
 
   })
 
+  const data = res.data
+
+  if (data.respType !== 200) {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+
+    return
+  }
+
   editedLineIndex = res.data.valueReponse.data.id
 }
 
 async function saveDetail() {
-  await $api('/api/promotion/create-update/promotiondetail', {
+  const res = await $api('/api/promotion/create-update/promotiondetail', {
     method: 'POST',
     data: {
       promotionLineId: editedLineIndex,
@@ -243,8 +289,23 @@ async function saveDetail() {
       maxDiscount: maxdiscount.value,
       conditionApply: conditionApply.value,
     },
-
   })
+
+  const data = res.data
+
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Thêm/Chỉnh sửa dòng khuyến mãi thành công'
+    link.value = `/promotion/edit/${route.params.id}`
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
 }
 
 async function saveLineAndDetail() {
@@ -680,4 +741,12 @@ const resolveUserStatusVariant = (stat: number) => {
       </VDialog>
     </VCardText>
   </VCard>
+  <ReponseDialog
+    :is-dialog-visible="isDialogVisible"
+    :title="title"
+    :message="message"
+    :link="link"
+    :is-error="resErr"
+    @update:is-dialog-visible="handleDialogVisibility"
+  />
 </template>

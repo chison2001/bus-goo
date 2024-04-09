@@ -9,7 +9,19 @@ const name = ref('')
 const description = ref('')
 const fromDate = ref('')
 const toDate = ref('')
-const router = useRouter()
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+const now = new Date()
+
+now.setDate(now.getDate() + 1)
+
+const date = now.toLocaleDateString('en-CA')
+
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
 
 const add = async () => {
   const res = await $api('/api/promotion/create-promotion', {
@@ -26,9 +38,18 @@ const add = async () => {
 
   const data = res.data
 
-  console.log(data.respType === '200')
-  if (data.respType === 200)
-    router.replace('/promotion/list')
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Thêm khuyến mãi thành công'
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
 }
 
 const onSubmit = () => {
@@ -96,6 +117,7 @@ const onSubmit = () => {
               label="Ngày bắt đầu"
               clear-icon="tabler-x"
               clearable
+              :config="{ minDate: date }"
               :rules="[requiredValidator]"
             />
           </VCol>
@@ -110,6 +132,7 @@ const onSubmit = () => {
               label="Ngày kết thúc"
               clear-icon="tabler-x"
               clearable
+              :config="{ minDate: date }"
               :rules="[requiredValidator]"
             />
           </VCol>
@@ -151,4 +174,12 @@ const onSubmit = () => {
       </VForm>
     </VCardText>
   </VCard>
+  <ReponseDialog
+    :is-dialog-visible="isDialogVisible"
+    :title="title"
+    :message="message"
+    link="/promotion/list"
+    :is-error="resErr"
+    @update:is-dialog-visible="handleDialogVisibility"
+  />
 </template>

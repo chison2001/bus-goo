@@ -13,10 +13,17 @@ const isFormDetailValid = ref(false)
 const refFormDetail = ref<VForm>()
 const newPriceDetails = ref([] as PriceDetail[])
 const routes = ref([] as Item[])
-const router = useRouter()
 const boxRoute = ref()
 const boxTypeBus = ref()
 const priceValue = ref()
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
+const link = ref('')
 
 const typeBuses = [{
   value: 1,
@@ -46,6 +53,11 @@ const checkStatus = price.value.status === 0
 const dialog = ref(false)
 const dialogDelete = ref(false)
 let deletedId = -1
+const now = new Date()
+
+now.setDate(now.getDate() + 1)
+
+const date = now.toLocaleDateString('en-CA')
 
 function deleteDetail(id: number) {
   deletedId = id
@@ -112,31 +124,63 @@ async function getDetails() {
 await getDetails()
 
 async function saveDetail() {
-  await $api('/api/price/create-detail', {
+  const res = await $api('/api/price/create-detail', {
     method: 'POST',
     data: {
       typeBusId: boxTypeBus.value.value,
       routeId: boxRoute.value.value,
-      priceValue: priceValue.value,
+      priceValue: Number(priceValue.value),
       priceId: price.value.id,
     },
 
   })
+
+  const data = res.data
+
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Thêm/sửa chi tiết đơn giá thành công'
+    link.value = `/price/edit/${route.params.id}`
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
+
   await getDetails()
 }
 
 async function deleteDetailAPI(id: number) {
-  await $api(`/api/price/delete-price-detail/${id}`, {
+  const res = await $api(`/api/price/delete-price-detail/${id}`, {
     method: 'DELETE',
   })
+
+  const data = res.data
+
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Xoá chi tiết đơn giá thành công'
+    link.value = `/price/edit/${route.params.id}`
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
   await getDetails()
 }
 
 function save() {
-  refFormDetail.value?.validate().then(async ({ valid }) => {
+  refFormDetail.value?.validate().then(({ valid }) => {
     if (valid) {
-      await saveDetail()
-      await getDetails()
+      saveDetail()
       close()
       nextTick(() => {
         refFormDetail.value?.reset()
@@ -160,9 +204,19 @@ async function savePrice() {
 
   const data = res.data
 
-  console.log(data.respType === '200')
-  if (data.respType === 200)
-    router.replace('/price/list')
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Chỉnh sửa đơn giá thành công'
+    link.value = '/price/list'
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
 }
 
 function onSubmit() {
@@ -206,6 +260,7 @@ const resolveUserStatusVariant = (stat: number) => {
               v-model="price.fromDate"
               :disabled="isLessThanCurrentDate || checkStatus"
               :rules="[requiredValidator]"
+              :config="{ minDate: date }"
               label="Ngày có hiệu lực"
             />
           </VCol>
@@ -219,6 +274,7 @@ const resolveUserStatusVariant = (stat: number) => {
               v-model="price.toDate"
               :disabled="isLessThanCurrentDate || checkStatus"
               :rules="[requiredValidator]"
+              :config="{ minDate: date }"
               label="Ngày hết hiệu lực"
             />
           </VCol>
@@ -255,7 +311,7 @@ const resolveUserStatusVariant = (stat: number) => {
                     Trạng thái
                   </th>
                   <th
-                    v-if="isLessThanCurrentDate && checkStatus"
+                    v-if="!isLessThanCurrentDate && !checkStatus"
                     class="text-center"
                   >
                     <VIcon
@@ -294,10 +350,7 @@ const resolveUserStatusVariant = (stat: number) => {
                       {{ resolveUserStatusVariant(item.status)?.value }}
                     </VChip>
                   </td>
-                  <td
-                    v-if="isLessThanCurrentDate && checkStatus"
-                    class="text-center"
-                  >
+                  <td class="text-center">
                     <VIcon
                       size="small"
                       icon="tabler-trash"
@@ -438,4 +491,12 @@ const resolveUserStatusVariant = (stat: number) => {
       </VDialog>
     </VCardText>
   </VCard>
+  <ReponseDialog
+    :is-dialog-visible="isDialogVisible"
+    :title="title"
+    :message="message"
+    :link="link"
+    :is-error="resErr"
+    @update:is-dialog-visible="handleDialogVisibility"
+  />
 </template>

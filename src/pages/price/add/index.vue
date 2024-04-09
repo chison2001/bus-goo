@@ -8,7 +8,18 @@ const refForm = ref<VForm>()
 const fromDate = ref('')
 const toDate = ref('')
 const description = ref('')
-const router = useRouter()
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
+const now = new Date()
+
+now.setDate(now.getDate() + 1)
+
+const date = now.toLocaleDateString('en-CA')
 
 const add = async () => {
   const res = await $api('/api/price/create', {
@@ -23,9 +34,18 @@ const add = async () => {
 
   const data = res.data
 
-  console.log(data.respType === '200')
-  if (data.respType === 200)
-    router.replace('/price/list')
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Thêm đơn giá thành công'
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
 }
 
 const onSubmit = () => {
@@ -65,6 +85,7 @@ const onSubmit = () => {
             <AppDateTimePicker
               v-model="fromDate"
               :rules="[requiredValidator]"
+              :config="{ minDate: date }"
               label="Ngày có hiệu lực"
             />
           </VCol>
@@ -76,6 +97,7 @@ const onSubmit = () => {
           >
             <AppDateTimePicker
               v-model="toDate"
+              :config="{ minDate: date }"
               :rules="[requiredValidator]"
               label="Ngày hết hiệu lực"
             />
@@ -118,4 +140,12 @@ const onSubmit = () => {
       </VForm>
     </VCardText>
   </VCard>
+  <ReponseDialog
+    :is-dialog-visible="isDialogVisible"
+    :title="title"
+    :message="message"
+    link="/price/list"
+    :is-error="resErr"
+    @update:is-dialog-visible="handleDialogVisibility"
+  />
 </template>

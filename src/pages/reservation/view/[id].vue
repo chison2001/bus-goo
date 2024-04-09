@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import type { Level, RenderAs } from 'qrcode.vue'
+import QrcodeVue from 'qrcode.vue'
 import $api from '@/utils/api'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
+const val = ref('qrcode')
+const level = ref<Level>('M')
+const renderAs = ref<RenderAs>('svg')
 interface OrderDetail {
   orderDetailId: null | number
   code: string
@@ -12,6 +17,13 @@ interface OrderDetail {
   orderId: number
 }
 
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
 const route = useRoute('reservation-view-id')
 const router = useRouter()
 const dialogConfirmPayment = ref(false)
@@ -47,6 +59,8 @@ const resolvePaymentStatusVariant = (stat: number) => {
 }
 
 async function Payment() {
+  dialogConfirmPayment.value = false
+
   const response = await $api('/payment', {
     method: 'GET',
     params: {
@@ -55,10 +69,20 @@ async function Payment() {
     },
   })
 
-  const { respType } = response.data
+  const { respType, responseMsg } = response.data
 
-  if (respType === 200)
-    location.reload()
+  if (respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Thanh toán thành công'
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = responseMsg
+    resErr.value = true
+  }
 }
 </script>
 
@@ -111,6 +135,13 @@ async function Payment() {
                 <span>Ngày đặt </span>
                 <span>{{ new Date('2024-04-04').toLocaleDateString('en-GB') }}</span>
               </p>
+              <VRow class="justify-center mt-3">
+                <QrcodeVue
+                  :value="val"
+                  :level="level"
+                  :render-as="renderAs"
+                />
+              </VRow>
             </div>
           </VCardText>
           <!-- !SECTION -->
@@ -307,7 +338,7 @@ async function Payment() {
     >
       <VCard>
         <VCardTitle class="text-h5">
-          Bạn đã nhận được tiền từ khách hàng chưa?
+          Xác nhận thanh toán?
         </VCardTitle>
         <VCardActions>
           <VSpacer />
@@ -329,6 +360,14 @@ async function Payment() {
         </VCardActions>
       </VCard>
     </VDialog>
+    <ReponseDialog
+      :is-dialog-visible="isDialogVisible"
+      :title="title"
+      :message="message"
+      link="/reservation/list"
+      :is-error="resErr"
+      @update:is-dialog-visible="handleDialogVisibility"
+    />
   </section>
 </template>
 

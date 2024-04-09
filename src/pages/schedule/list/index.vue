@@ -41,7 +41,6 @@ const headers = [
   { title: 'Thời gian chạy', key: 'timeTransfer' },
   { title: 'Thời gian khởi hành', key: 'timeStarted' },
   { title: 'Trạng thái', key: 'status' },
-  { title: 'Hành động', key: 'actions', sortable: false },
 ]
 
 const status = [
@@ -78,11 +77,11 @@ watch(selectedFrom, () => from.value = selectedFrom.value?.value)
 watch(selectedTo, () => to.value = selectedTo.value?.value)
 
 // 👉 Delete Schedule
-const deleteSchedule = async (id: number) => {
-  await $api(`/api/timetable/delete/${id}`, { method: 'DELETE' })
+// const deleteSchedule = async (id: number) => {
+//   await $api(`/api/timetable/delete/${id}`, { method: 'DELETE' })
 
-  fetchSchedules()
-}
+//   fetchSchedules()
+// }
 
 async function getRegion(parentId: number | null, regionStructureId: number) {
   const res = await $api('/api/region/find', {
@@ -254,17 +253,6 @@ function formatDateTime(DateTimeString: string) {
           >
             {{ resolveUserStatusVariant(item.status)?.value }}
           </VChip>
-        </template>
-
-        <!-- Actions -->
-        <template #item.actions="{ item }">
-          <IconBtn @click="deleteSchedule(item.id)">
-            <VIcon icon="tabler-trash" />
-          </IconBtn>
-
-          <IconBtn :to="{ name: 'promotion-edit-id', params: { id: item.id } }">
-            <VIcon icon="tabler-edit" />
-          </IconBtn>
         </template>
 
         <!-- pagination -->
