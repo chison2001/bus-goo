@@ -254,7 +254,10 @@ const resolveUserStatusVariant = (stat: number) => {
                   <th class="text-center">
                     Trạng thái
                   </th>
-                  <th class="text-center">
+                  <th
+                    v-if="isLessThanCurrentDate && checkStatus"
+                    class="text-center"
+                  >
                     <VIcon
                       class="me-2"
                       size="small"
@@ -291,7 +294,10 @@ const resolveUserStatusVariant = (stat: number) => {
                       {{ resolveUserStatusVariant(item.status)?.value }}
                     </VChip>
                   </td>
-                  <td class="text-center">
+                  <td
+                    v-if="isLessThanCurrentDate && checkStatus"
+                    class="text-center"
+                  >
                     <VIcon
                       size="small"
                       icon="tabler-trash"

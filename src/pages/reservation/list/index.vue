@@ -10,17 +10,12 @@ const selectedFromDate = ref('')
 const selectedToDate = ref('')
 
 // Data table options
-const itemPerPage = ref(25)
+const itemPerPage = ref(10)
 const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const sortBy = ref('dsc')
+const orderBy = ref('id')
 
 // Update data table options
-const updateOptions = (options: any) => {
-  page.value = options.page
-  sortBy.value = options.sortBy[0]?.order
-  orderBy.value = options.sortBy[0]?.key
-}
 
 // 👉 headers
 const headers = [
@@ -48,11 +43,19 @@ const { data: orderData, execute: fetchInvoices } = await useApi<any>(createUrl(
     fromDate: selectedFromDate,
     toDate: selectedToDate,
     itemPerPage,
-    page: page.value - 1,
+    page,
     sortBy,
     orderBy,
   },
 }))
+
+const updateOptions = (options: any) => {
+  page.value = options.page
+  if (options.sortBy[0]?.order !== undefined)
+    sortBy.value = options.sortBy[0]?.order
+  if (options.sortBy[0]?.key !== undefined)
+    orderBy.value = options.sortBy[0]?.key
+}
 
 const promotions = computed(() => orderData.value.valueReponse.data.content)
 const totalOrder = computed(() => orderData.value.valueReponse.data.totalElements)
@@ -85,8 +88,8 @@ const deleteInvoice = async (id: number) => {
   <section v-if="promotions">
     <!-- 👉 Invoice Filters  -->
     <VCard
-      title="Bộ lọc"
-      class="mb-6"
+      class="mb-3"
+      fixed
     >
       <VCardText>
         <VRow>
@@ -174,6 +177,7 @@ const deleteInvoice = async (id: number) => {
         :items-length="totalOrder"
         :items="promotions"
         :headers="headers"
+        height="330"
         class="text-no-wrap"
         @click:row="(item) => console.log(item)"
         @update:options="updateOptions"

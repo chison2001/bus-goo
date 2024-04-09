@@ -44,7 +44,7 @@ const { data: promotionData, execute: fetchInvoices } = await useApi<any>(create
     fromDate: selectedFromDate,
     toDate: selectedToDate,
     itemPerPage,
-    page: page.value - 1,
+    page,
     sortBy,
     orderBy,
   },
@@ -72,10 +72,7 @@ const deleteInvoice = async (id: number) => {
 <template>
   <section v-if="promotions">
     <!-- 👉 Invoice Filters  -->
-    <VCard
-      title="Bộ lọc"
-      class="mb-6"
-    >
+    <VCard class="mb-4">
       <VCardText>
         <VRow>
           <!-- 👉 Status filter -->
@@ -183,6 +180,7 @@ const deleteInvoice = async (id: number) => {
         :items="promotions"
         :headers="headers"
         class="text-no-wrap"
+        height="330"
         @click:row="(item) => console.log(item)"
         @update:options="updateOptions"
       >

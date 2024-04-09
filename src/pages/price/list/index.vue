@@ -42,7 +42,7 @@ const { data: pricesData, execute: fetchPrices } = await useApi<any>(createUrl('
     fromDate: selectedFromDate,
     toDate: selectedToDate,
     itemPerPage,
-    page: page.value - 1,
+    page,
     sortBy,
     orderBy,
   },
@@ -73,10 +73,7 @@ const deletePrice = async (id: number) => {
 
 <template>
   <section>
-    <VCard
-      title="Bộ lọc"
-      class="mb-6"
-    >
+    <VCard class="mb-4">
       <VCardText>
         <VRow>
           <!-- 👉 Status filter -->
@@ -170,6 +167,7 @@ const deletePrice = async (id: number) => {
         v-model:page="page"
         :items="prices"
         :items-length="totalPrices"
+        height="330"
         :headers="headers"
         class="text-no-wrap"
         @update:options="updateOptions"

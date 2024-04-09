@@ -19,15 +19,17 @@ const to = ref()
 // Data table options
 const itemPerPage = ref(10)
 const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const sortBy = ref('dsc')
+const orderBy = ref('id')
 const cities = ref([] as Region[])
 
 // Update data table options
 const updateOptions = (options: any) => {
   page.value = options.page
-  sortBy.value = options.sortBy[0]?.order
-  orderBy.value = options.sortBy[0]?.key
+  if (options.sortBy[0]?.order !== undefined)
+    sortBy.value = options.sortBy[0]?.order
+  if (options.sortBy[0]?.key !== undefined)
+    orderBy.value = options.sortBy[0]?.key
 }
 
 // 👉 headers
@@ -52,7 +54,7 @@ const { data: routeData, execute: fetchRoutes } = await useApi<any>(createUrl('/
     fromId: from,
     toId: to,
     itemPerPage,
-    page: page.value - 1,
+    page,
     sortBy,
     orderBy,
   },
@@ -107,10 +109,7 @@ function formatTime(timeString: string) {
 <template>
   <section v-if="routes">
     <!-- 👉 Invoice Filters  -->
-    <VCard
-      title="Bộ lọc"
-      class="mb-6"
-    >
+    <VCard class="mb-4">
       <VCardText>
         <VRow>
           <!-- 👉 Status filter -->
@@ -184,18 +183,6 @@ function formatTime(timeString: string) {
               density="compact"
             />
           </div>
-
-          <!-- 👉 Select status -->
-          <div class="invoice-list-filter">
-            <AppSelect
-              v-model="selectedStatus"
-              placeholder="Chọn trạng thái"
-              clearable
-              clear-icon="tabler-x"
-              single-line
-              :items="status"
-            />
-          </div>
           <!-- 👉 Create invoice -->
           <VBtn
             prepend-icon="tabler-plus"
@@ -211,6 +198,7 @@ function formatTime(timeString: string) {
       <VDataTableServer
         v-model:items-per-page="itemPerPage"
         v-model:page="page"
+        height="330"
         :items-length="totalPromotions"
         :items="routes"
         :headers="headers"

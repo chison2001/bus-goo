@@ -72,8 +72,5 @@ watch([isFallbackStateActive, refLoadingIndicator], () => {
     <template #footer>
       <Footer />
     </template>
-
-    <!-- 👉 Customizer -->
-    <TheCustomizer />
   </VerticalNavLayout>
 </template>

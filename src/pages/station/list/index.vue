@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { VDataTableServer } from 'vuetify/labs/VDataTable'
+import { VDataTableVirtual } from 'vuetify/labs/VDataTable'
 import { VCardText } from 'vuetify/lib/components/index.mjs'
 import $api from '@/utils/api'
 
@@ -79,89 +79,63 @@ await getRegion(null)
 </script>
 
 <template>
-  <!-- 👉 Invoice Filters  -->
-  <VCard
-    title="Bộ lọc"
-    class="mb-6"
-  >
-    <VCardText>
-      <VRow>
-        <!-- 👉 DateRange filter -->
-        <VCol
-          cols="12"
-          md="6"
-        >
-          <AppCombobox
-            v-model="selectedRegion"
-            :items="cities"
-            label="Điểm khởi hành"
-          />
-        </VCol>
-        <!-- 👉 DateRange filter -->
-        <VCol
-          cols="12"
-          md="3"
-        >
-          <!-- 👉 Create invoice -->
-          <VBtn
-            class="mt-6"
-            prepend-icon="tabler-search"
-            @click="getStation"
-          >
-            Tìm kiếm
-          </VBtn>
-        </VCol>
+  <VCard id="invoice-list">
+    <VCardText class="d-flex align-center flex-wrap gap-4">
+      <div class="me-3 d-flex gap-3 align-center">
+        <AppCombobox
+          v-model="selectedRegion"
+          :items="cities"
+          style="inline-size: 15rem;"
+        />
+        <VBtn
 
-        <!-- 👉 DateRange filter -->
-        <VCol
-          class="mt-6"
-          cols="12"
-          md="3"
+          prepend-icon="tabler-search"
+          @click="getStation"
         >
-          <!-- 👉 Create invoice -->
-          <VBtn
-            prepend-icon="tabler-plus"
-            to="add"
-          >
-            Thêm bến
-          </VBtn>
-        </VCol>
-      </VRow>
+          Tìm kiếm
+        </VBtn>
+      </div>
+
+      <VSpacer />
+
+      <div class="d-flex align-center flex-wrap gap-4">
+        <!-- 👉 Create invoice -->
+        <VBtn
+          prepend-icon="tabler-plus"
+          to="add"
+        >
+          Thêm bến
+        </VBtn>
+      </div>
     </VCardText>
-  </VCard>
-  <section v-if="stations">
-    <VCard id="invoice-list">
-      <!-- SECTION Datatable -->
-      <VDataTableServer
-        :items-length="totalSchedules"
-        :items="stations"
-        :headers="headers"
-        class="text-no-wrap"
-      >
-        <template #item.address="{ item }">
-          <span class="text-capitalize font-weight-medium">{{ `${item.addressDescription}, ${item.address}, ${item.addressParent}` }}</span>
-        </template>
+    <VDivider />
+    <!-- SECTION Datatable -->
+    <VDataTableVirtual
+      :items-length="totalSchedules"
+      :items="stations"
+      :headers="headers"
+      height="330"
+      class="text-no-wrap"
+      no-data-text="Không có bến xe nào được tìm thấy"
+    >
+      <template #item.address="{ item }">
+        <span class="text-capitalize font-weight-medium">{{ `${item.addressDescription}, ${item.address}, ${item.addressParent}` }}</span>
+      </template>
 
-        <!-- Status -->
-        <template #item.status="{ item }">
-          <VChip
-            :color="resolveUserStatusVariant(item.status)?.color"
-            size="small"
-            label
-            class="text-capitalize"
-          >
-            {{ resolveUserStatusVariant(item.status)?.value }}
-          </VChip>
-        </template>
-      </VDataTableServer>
+      <!-- Status -->
+      <template #item.status="{ item }">
+        <VChip
+          :color="resolveUserStatusVariant(item.status)?.color"
+          size="small"
+          label
+          class="text-capitalize"
+        >
+          {{ resolveUserStatusVariant(item.status)?.value }}
+        </VChip>
+      </template>
+    </VDataTableVirtual>
     <!-- !SECTION -->
-    </VCard>
-  </section>
-  <section v-else>
-    <VCard>
-      <VCardTitle>Không tìm thấy bến xe!!</VCardTitle>
-    </VCard>
-  </section>
+  </VCard>
 </template>
 
 <style lang="scss">

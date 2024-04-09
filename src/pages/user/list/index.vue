@@ -10,14 +10,16 @@ const selectedStatus = ref()
 // Data table options
 const itemPerPage = ref(10)
 const page = ref(1)
-const sortBy = ref()
-const orderBy = ref()
+const sortBy = ref('dsc')
+const orderBy = ref('userId')
 
 // Update data table options
 const updateOptions = (options: any) => {
   page.value = options.page
-  sortBy.value = options.sortBy[0]?.order
-  orderBy.value = options.sortBy[0]?.key
+  if (options.sortBy[0]?.order !== undefined)
+    sortBy.value = options.sortBy[0]?.order
+  if (options.sortBy[0]?.key !== undefined)
+    orderBy.value = options.sortBy[0]?.key
 }
 
 // Headers
@@ -36,7 +38,7 @@ const { data: usersData, execute: fetchUsers } = await useApi<any>(createUrl('/a
     q: searchQuery,
     status: selectedStatus,
     itemPerPage,
-    page: page.value - 1,
+    page,
     sortBy,
     orderBy,
   },
@@ -137,6 +139,7 @@ const deleteUser = async (userId: number) => {
         v-model:items-per-page="itemPerPage"
         v-model:page="page"
         :items="users"
+        height="450"
         :items-length="totalUsers"
         :headers="headers"
         class="text-no-wrap"

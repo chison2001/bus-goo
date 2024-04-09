@@ -42,16 +42,18 @@ const route = useRoute('promotion-edit-id')
 const router = useRouter()
 const checkPromoType = ref(true)
 
-watch(promoTypeValue, val => {
-  if (val !== null) {
-    if (val.value === 1) {
+watch(promoTypeValue, () => {
+  if (promoTypeValue.value !== null) {
+    console.log(promoTypeValue.value)
+    if (promoTypeValue.value.value === 1) {
       checkPromoType.value = true
       maxdiscount.value = null
     }
-    if (val.value === 2) {
+    if (promoTypeValue.value.value === 2) {
       checkPromoType.value = false
       conditionApply.value = null
     }
+    console.log(checkPromoType.value)
   }
 })
 
@@ -136,6 +138,8 @@ let editedDetailIndex: number | null = null
 let deletedId = -1
 
 async function getLineByID(id: number) {
+  resetDialog()
+
   const res = await $api('/api/promotion/get-detail', {
     method: 'GET',
     params: {
@@ -150,17 +154,26 @@ async function getLineByID(id: number) {
   promoName.value = line.lineName
   lineCode.value = line.code
   fromDate.value = line.fromDate
-  promoTypeValue.value.value = line.promotionType
   toDate.value = line.toDate
   editedDetailIndex = data.id
   detailCode.value = data.code
   discount.value = data.discount
   maxdiscount.value = data.maxDiscount
   conditionApply.value = data.conditionApply
-  if (promoTypeValue.value.value === 1)
+  if (line.promotionType === 1) {
     checkPromoType.value = true
-  if (promoTypeValue.value.value === 2)
+    promoTypeValue.value = {
+      value: 1,
+      title: 'Giá',
+    }
+  }
+  if (line.promotionType === 2) {
     checkPromoType.value = false
+    promoTypeValue.value = {
+      value: 2,
+      title: 'Chiết khấu',
+    }
+  }
 }
 function addLine() {
   editedLineIndex = -1
@@ -559,6 +572,7 @@ const resolveUserStatusVariant = (stat: number) => {
                   <AppSelect
                     v-model="promoTypeValue"
                     :items="promoTypes"
+                    return-object
                     label="Loại dòng khuyến mãi"
                     :rules="[requiredValidator]"
                   />
@@ -576,8 +590,6 @@ const resolveUserStatusVariant = (stat: number) => {
                 >
                   <AppTextField
                     v-model="detailCode"
-                    :rules="[requiredValidator]"
-                    :disabled="isLessThanCurrentDate || checkStatus"
                     :label="$t('Code')"
                     placeholder="TET2024"
                   />
@@ -590,7 +602,6 @@ const resolveUserStatusVariant = (stat: number) => {
                   <AppTextField
                     v-model="discount"
                     label="Giảm giá"
-                    :disabled="isLessThanCurrentDate || checkStatus"
                     :rules="[requiredValidator]"
                   />
                 </VCol>
@@ -601,8 +612,8 @@ const resolveUserStatusVariant = (stat: number) => {
                 >
                   <AppTextField
                     v-model="maxdiscount"
+                    :disabled="checkPromoType"
                     label="Giảm giá tối đa"
-                    :disabled="isLessThanCurrentDate || checkStatus || checkPromoType"
                   />
                 </VCol>
                 <VCol
@@ -612,8 +623,8 @@ const resolveUserStatusVariant = (stat: number) => {
                 >
                   <AppTextField
                     v-model="conditionApply"
+                    :disabled="!checkPromoType"
                     label="Giá mua tối thiểu"
-                    :disabled="isLessThanCurrentDate || checkStatus || !checkPromoType"
                   />
                 </VCol>
               </VRow>
