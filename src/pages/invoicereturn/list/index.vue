@@ -4,7 +4,7 @@ import { paginationMeta } from '@api-utils/paginationMeta'
 import { useSeatStore } from '@core/stores/seatStore'
 
 const store = useSeatStore()
-const selectedStatus = ref('')
+const selectedStatus = ref('0')
 const selectedFromDate = ref('')
 const selectedToDate = ref('')
 
@@ -20,19 +20,20 @@ const orderBy = ref('id')
 const headers = [
   { title: 'Code', key: 'code' },
   { title: 'Tên người đặt', key: 'userName' },
-  { title: 'Trạng thái thanh toán', key: 'payStatus' },
-  { title: 'Ngày đặt vé', key: 'createDate' },
+  { title: 'Tuyến đường', key: 'busTrip' },
+  { title: 'Ghế', key: 'strLstSeatName' },
   { title: 'Tổng tiền', key: 'total' },
+  { title: 'Lí do huỷ', key: 'reason' },
   { title: 'Hành động', key: 'actions', sortable: false },
 ]
 
-const status = [
-  { title: 'Active', value: 1 },
-  { title: 'Inactive', value: 0 },
-]
+onBeforeRouteLeave(to => {
+  if (to.path === '/reservation/add')
+    store.clearState()
+})
 
 // 👉 Fetch Invoices
-const { data: orderData } = await useApi<any>(createUrl('/api/order/find', {
+const { data: orderData } = await useApi<any>(createUrl('/api/invoice/find', {
   query: {
     status: selectedStatus,
     fromDate: selectedFromDate,
@@ -63,21 +64,6 @@ const resolveUserStatusVariant = (stat: number) => {
     return { color: 'secondary', value: 'inactive' }
 }
 
-const resolvePayVariant = (stat: number) => {
-  const statLowerCase = stat
-  if (statLowerCase === 1)
-    return { color: 'success', value: 'đã thanh toán' }
-  if (statLowerCase === 0)
-    return { color: 'secondary', value: 'chưa thanh toán' }
-}
-
-// 👉 Delete Invoice
-// const deleteInvoice = async (id: number) => {
-//   await $api(`/apps/invoice/${id}`, { method: 'DELETE' })
-
-//   fetchInvoices()
-// }
-
 function formatPrice(value: number) {
   return `${value.toLocaleString('vi-VN')} VNĐ`
 }
@@ -92,25 +78,10 @@ function formatPrice(value: number) {
     >
       <VCardText>
         <VRow>
-          <!-- 👉 Status filter -->
-          <VCol
-            cols="12"
-            md="4"
-          >
-            <AppSelect
-              v-model="selectedStatus"
-              label="Chọn trạng thái"
-              placeholder="Chọn trạng thái"
-              clearable
-              clear-icon="tabler-x"
-              :items="status"
-            />
-          </VCol>
-
           <!-- 👉 DateRange filter -->
           <VCol
             cols="12"
-            md="4"
+            md="6"
           >
             <AppDateTimePicker
               v-model="selectedFromDate"
@@ -124,7 +95,7 @@ function formatPrice(value: number) {
           <!-- 👉 DateRange filter -->
           <VCol
             cols="12"
-            md="4"
+            md="6"
           >
             <AppDateTimePicker
               v-model="selectedToDate"
@@ -156,16 +127,6 @@ function formatPrice(value: number) {
         </div>
 
         <VSpacer />
-
-        <div class="d-flex align-center flex-wrap gap-4">
-          <!-- 👉 Create invoice -->
-          <VBtn
-            prepend-icon="tabler-plus"
-            to="add"
-          >
-            Đặt vé
-          </VBtn>
-        </div>
       </VCardText>
       <VDivider />
 
@@ -181,15 +142,8 @@ function formatPrice(value: number) {
         @click:row="(item) => console.log(item)"
         @update:options="updateOptions"
       >
-        <template #item.payStatus="{ item }">
-          <VChip
-            :color="resolvePayVariant(item.isPay)?.color"
-            size="small"
-            label
-            class="text-capitalize"
-          >
-            {{ resolvePayVariant(item.isPay)?.value }}
-          </VChip>
+        <template #item.total="{ item }">
+          <span class="text-capitalize font-weight-medium">{{ formatPrice(item.total) }}</span>
         </template>
 
         <!-- Status -->
@@ -206,13 +160,11 @@ function formatPrice(value: number) {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn :to="{ name: 'reservation-view-id', params: { id: item.id } }">
-            <VIcon icon="tabler-eye" />
-          </IconBtn>
-        </template>
-
-        <template #item.total="{ item }">
-          <span class="text-capitalize font-weight-medium">{{ formatPrice(item.total) }}</span>
+          <Row class="justify-content-center">
+            <IconBtn :to="{ name: 'invoicereturn-view-id', params: { id: item.id } }">
+              <VIcon icon="tabler-eye" />
+            </IconBtn>
+          </Row>
         </template>
 
         <!-- pagination -->

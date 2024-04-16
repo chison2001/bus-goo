@@ -54,7 +54,12 @@ export default [
   },
   {
     title: 'Hoá đơn',
-    to: { name: 'second-page' },
+    to: { name: 'invoice-list' },
     icon: { icon: 'tabler-file' },
+  },
+  {
+    title: 'Hoá đơn trả',
+    to: { name: 'invoicereturn-list' },
+    icon: { icon: 'tabler-file-off' },
   },
 ]

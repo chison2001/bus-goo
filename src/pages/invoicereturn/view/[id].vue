@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import type { Level, RenderAs } from 'qrcode.vue'
+import QrcodeVue from 'qrcode.vue'
 import $api from '@/utils/api'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
 
+const val = ref('qrcode')
+const level = ref<Level>('M')
+const renderAs = ref<RenderAs>('svg')
 interface OrderDetail {
   orderDetailId: null | number
   code: string
@@ -11,68 +16,32 @@ interface OrderDetail {
   price: number
   orderId: number
 }
-
-const isDialogVisible = ref(false)
-const title = ref('')
-const message = ref('')
-const resErr = ref(false)
-function handleDialogVisibility(value: boolean) {
-  isDialogVisible.value = value
-}
-const route = useRoute('reservation-view-id')
+const route = useRoute('invoicereturn-view-id')
 const router = useRouter()
-const dialogConfirmPayment = ref(false)
 
-const res = await $api('/api/order/get', {
+const res = await $api('/api/invoice/get', {
   method: 'GET',
   params: {
-    orderId: route.params.id,
+    invoiceId: route.params.id,
   },
 
 })
 
 const invoiceData = res.data.valueReponse.data
 
-const user = invoiceData.userDTO
-const checkPay = invoiceData.isPay === 1
-
 function formatPrice(value: number) {
   return `${value.toLocaleString('vi-VN')} VNĐ`
 }
 
-const resolvePaymentStatusVariant = (stat: number) => {
-  const statLowerCase = stat
-  if (statLowerCase === 1)
-    return 'Thanh toán'
-  if (statLowerCase === 0)
-    return 'Chưa thanh toán'
-}
+function formatDateString(dateString: string) {
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  const hours = date.getHours().toString().padStart(2, '0')
+  const minutes = date.getMinutes().toString().padStart(2, '0')
 
-async function Payment() {
-  dialogConfirmPayment.value = false
-
-  const response = await $api('/payment', {
-    method: 'GET',
-    params: {
-      orderId: invoiceData.orderId,
-      paymentType: 'CASH',
-    },
-  })
-
-  const { respType, responseMsg } = response.data
-
-  if (respType === 200) {
-    isDialogVisible.value = true
-    title.value = 'Thông báo'
-    message.value = 'Thanh toán thành công'
-    resErr.value = false
-  }
-  else {
-    isDialogVisible.value = true
-    title.value = 'Đã xảy ra lỗi'
-    message.value = responseMsg
-    resErr.value = true
-  }
+  return `${hours}:${minutes} ${day}-${month}-${year}`
 }
 </script>
 
@@ -117,14 +86,21 @@ async function Payment() {
             <div class="mt-4 ma-sm-4">
               <!-- 👉 Invoice ID -->
               <h6 class="font-weight-medium text-h4">
-                Đơn hàng #{{ invoiceData.code }}
+                Hoá đơn #{{ invoiceData.code }}
               </h6>
 
               <!-- 👉 Issue Date -->
               <p class="my-3">
                 <span>Ngày đặt </span>
-                <span>{{ new Date('2024-04-04').toLocaleDateString('en-GB') }}</span>
+                <span>{{ new Date(invoiceData.timeBooking).toLocaleDateString('en-GB') }}</span>
               </p>
+              <VRow class="justify-center mt-3">
+                <QrcodeVue
+                  :value="val"
+                  :level="level"
+                  :render-as="renderAs"
+                />
+              </VRow>
             </div>
           </VCardText>
           <!-- !SECTION -->
@@ -138,29 +114,48 @@ async function Payment() {
                 Người đặt vé
               </h6>
               <p class="mb-1">
-                {{ user.fullName }}
+                {{ invoiceData.userName }}
               </p>
               <p class="mb-1">
-                {{ user.phone }}
+                {{ invoiceData.userPhone }}
               </p>
               <p class="mb-1">
-                {{ user.address }}
+                {{ invoiceData.userAddress }}
               </p>
             </div>
-
             <div class="mt-4 ma-sm-4">
               <h6 class="text-h6 font-weight-medium mb-6">
-                Thanh toán:
+                Thông tin vé
               </h6>
               <table>
                 <tbody>
                   <tr>
                     <td class="pe-6 pb-1">
-                      Tình trạng thanh toán
+                      Tuyến đường:
                     </td>
                     <td class="pb-1">
                       <span class="font-weight-medium">
-                        {{ resolvePaymentStatusVariant(invoiceData.isPay) }}
+                        {{ invoiceData.busTrip }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="pe-6 pb-1">
+                      Thời gian đặt:
+                    </td>
+                    <td class="pb-1">
+                      <span class="font-weight-medium">
+                        {{ invoiceData.timeBooking }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="pe-6 pb-1">
+                      Thời gian khởi hành:
+                    </td>
+                    <td class="pb-1">
+                      <span class="font-weight-medium">
+                        {{ formatDateString(invoiceData.timeStarted) }}
                       </span>
                     </td>
                   </tr>
@@ -205,16 +200,16 @@ async function Payment() {
             <tbody>
               <tr>
                 <td class="text-center">
-                  {{ invoiceData.orderDetails.map((detail: OrderDetail) => detail.seatName).join(', ') }}
+                  {{ invoiceData.list.map((detail: OrderDetail) => detail.seatName).join(', ') }}
                 </td>
                 <td class="text-center">
-                  {{ formatPrice(invoiceData.orderDetails[0].price) }}
+                  {{ formatPrice(invoiceData.list[0].price) }}
                 </td>
                 <td class="text-center">
-                  {{ invoiceData.orderDetails.length }}
+                  {{ invoiceData.list.length }}
                 </td>
                 <td class="text-center">
-                  {{ formatPrice(invoiceData.orderDetails[0].price * invoiceData.orderDetails.length) }}
+                  {{ formatPrice(invoiceData.list[0].price * invoiceData.list.length) }}
                 </td>
               </tr>
             </tbody>
@@ -274,22 +269,12 @@ async function Payment() {
       >
         <VCard>
           <VCardText>
-            <!-- 👉 Send Invoice Trigger button -->
-            <VBtn
-              block
-              class="mb-2"
-              :disabled="checkPay"
-              @click="dialogConfirmPayment = true"
-            >
-              Thanh toán
-            </VBtn>
-
             <VBtn
               block
               variant="tonal"
               color="secondary"
               class="mb-2"
-              @click="router.push('/reservation/list')"
+              @click="router.push('/invoicereturn/list')"
             >
               Trở lại
             </VBtn>
@@ -297,42 +282,6 @@ async function Payment() {
         </VCard>
       </VCol>
     </VRow>
-    <VDialog
-      v-model="dialogConfirmPayment"
-      max-width="500px"
-    >
-      <VCard>
-        <VCardTitle class="text-h5">
-          Xác nhận thanh toán?
-        </VCardTitle>
-        <VCardActions>
-          <VSpacer />
-          <VBtn
-            color="blue-darken-1"
-            variant="text"
-            @click="dialogConfirmPayment = false"
-          >
-            Cancel
-          </VBtn>
-          <VBtn
-            color="blue-darken-1"
-            variant="text"
-            @click="Payment"
-          >
-            OK
-          </VBtn>
-          <VSpacer />
-        </VCardActions>
-      </VCard>
-    </VDialog>
-    <ReponseDialog
-      :is-dialog-visible="isDialogVisible"
-      :title="title"
-      :message="message"
-      link="/reservation/list"
-      :is-error="resErr"
-      @update:is-dialog-visible="handleDialogVisibility"
-    />
   </section>
 </template>
 

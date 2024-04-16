@@ -34,5 +34,6 @@
   "Hoá đơn": "Invoice",
   "Code": "Code",
   "Tuyến đường": "Routes",
-  "Bến xe": "Station"
+  "Bến xe": "Station",
+  "Hoá đơn trả": "Return Invoice"
 }

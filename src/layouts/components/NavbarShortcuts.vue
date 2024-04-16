@@ -30,11 +30,6 @@ const shortcuts = [
   },
 
 ]
-
-onBeforeRouteLeave(to => {
-  if (to.path === '/reservation/add')
-    store.clearState()
-})
 </script>
 
 <template>

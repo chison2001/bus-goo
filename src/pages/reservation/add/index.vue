@@ -141,6 +141,8 @@ function formatTime(timeString: any) {
 
   return `${hours}:${minutes}`
 }
+
+console.log(seatStore.selectedFrom)
 </script>
 
 <template>

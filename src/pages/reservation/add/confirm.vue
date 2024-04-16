@@ -270,6 +270,7 @@ async function Payment() {
     }
   }
 }
+console.log(seatStore.selectedFrom)
 </script>
 
 <template>
