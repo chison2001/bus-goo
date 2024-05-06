@@ -256,18 +256,17 @@ async function Payment() {
     const { respType, responseMsg } = response.data
 
     if (respType === 200) {
-      isDialogVisible.value = true
       title.value = 'Thông báo'
       message.value = 'Thanh toán thành công'
       link.value = `/reservation/view/${orderId.value}`
       resErr.value = false
     }
     else {
-      isDialogVisible.value = true
       title.value = 'Đã xảy ra lỗi'
       message.value = responseMsg
       resErr.value = true
     }
+    isDialogVisible.value = true
   }
 }
 console.log(seatStore.selectedFrom)

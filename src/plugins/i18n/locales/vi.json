@@ -27,13 +27,15 @@
     "Lợi nhuận": "Lợi nhuận",
     "Giá": "Giá",
     "Thống kê": "Thống kê",
-    "Thống kê doanh thu": "Thống kê doanh thu",
-    "Thống kê hoá đơn": "Thống kê hoá đơn",
+    "Doanh thu theo xe": "Doanh thu theo xe",
+    "Doanh thu theo khách": "Doanh thu theo khách",
+    "Thống kê khuyến mãi": "Thống kê khuyến mãi",
     "Quản lí dữ liệu": "Quản lí dữ liệu",
     "Quản lí giao dịch": "Quản lí giao dịch",
     "Hoá đơn": "Hoá đơn",
     "Code": "Code",
     "Tuyến đường": "Tuyến đường",
     "Bến xe": "Bến xe",
-    "Hoá đơn trả": "Hoá đơn trả"
+    "Hoá đơn trả": "Hoá đơn trả",
+    "Thống kê hoá đơn trả": "Thống kê hoá đơn trả"
 }

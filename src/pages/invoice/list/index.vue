@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { VForm } from 'vuetify/components/VForm'
 import { VDataTableServer } from 'vuetify/labs/VDataTable'
-import $api from '@/utils/api'
 import { paginationMeta } from '@api-utils/paginationMeta'
 import { useSeatStore } from '@core/stores/seatStore'
 
@@ -9,24 +7,12 @@ const store = useSeatStore()
 const selectedStatus = ref('1')
 const selectedFromDate = ref('')
 const selectedToDate = ref('')
-const dialogCancelInvoice = ref(false)
-const isFormValid = ref(false)
-const reason = ref()
-const refForm = ref<VForm>()
-const isDialogVisible = ref(false)
-const title = ref('')
-const message = ref('')
-const resErr = ref(false)
-function handleDialogVisibility(value: boolean) {
-  isDialogVisible.value = value
-}
 
 // Data table options
 const itemPerPage = ref(10)
 const page = ref(1)
 const sortBy = ref('dsc')
 const orderBy = ref('id')
-let cancelID = -1
 
 // Update data table options
 
@@ -86,54 +72,8 @@ const resolvePayVariant = (stat: number) => {
     return { color: 'secondary', value: 'chưa thanh toán' }
 }
 
-// 👉 Delete Invoice
-const deleteInvoice = async (id: number) => {
-  dialogCancelInvoice.value = false
-
-  const res = await $api('/api/invoice/return', {
-    method: 'POST',
-    data: {
-      invoiceId: id,
-      reason: reason.value,
-    },
-  })
-
-  const data = res.data
-  if (data.respType === 200) {
-    isDialogVisible.value = true
-    title.value = 'Thông báo'
-    message.value = 'Huỷ hoá đơn thành công'
-    resErr.value = false
-  }
-  else {
-    isDialogVisible.value = true
-    title.value = 'Đã xảy ra lỗi'
-    message.value = data.responseMsg
-    resErr.value = true
-  }
-
-  fetchInvoices()
-}
-
 function formatPrice(value: number) {
   return `${value.toLocaleString('vi-VN')} VNĐ`
-}
-
-function showCancelInvoice(id: number) {
-  cancelID = id
-  dialogCancelInvoice.value = true
-}
-
-const onSubmit = () => {
-  refForm.value?.validate().then(({ valid }) => {
-    if (valid) {
-      deleteInvoice(cancelID)
-      nextTick(() => {
-        refForm.value?.reset()
-        refForm.value?.resetValidation()
-      })
-    }
-  })
 }
 </script>
 
@@ -238,13 +178,6 @@ const onSubmit = () => {
 
         <!-- Actions -->
         <template #item.actions="{ item }">
-          <IconBtn @click="showCancelInvoice(item.id)">
-            <VIcon
-              icon="tabler-x"
-              color="error"
-            />
-          </IconBtn>
-
           <IconBtn :to="{ name: 'invoice-view-id', params: { id: item.id } }">
             <VIcon icon="tabler-eye" />
           </IconBtn>
@@ -297,63 +230,6 @@ const onSubmit = () => {
       <VCardTitle>Không tìm thấy hoá đơn!!</VCardTitle>
     </VCard>
   </section>
-
-  <VDialog
-    v-model="dialogCancelInvoice"
-    max-width="500px"
-  >
-    <VCard>
-      <VCardTitle class="text-h5">
-        Nhập lí do huỷ hoá đơn
-      </VCardTitle>
-      <VCardItem>
-        <VForm
-          ref="refForm"
-          v-model="isFormValid"
-          @submit.prevent="onSubmit"
-        >
-          <VRow>
-            <VCol
-              cols="12"
-              md="12"
-            >
-              <AppTextarea
-                v-model="reason"
-                label="Lí do huỷ hoá đơn"
-                :rules="[requiredValidator]"
-              />
-            </VCol>
-          </VRow>
-          <VCardActions>
-            <VSpacer />
-            <VBtn
-              color="blue-darken-1"
-              variant="text"
-              @click="dialogCancelInvoice = false"
-            >
-              Cancel
-            </VBtn>
-            <VBtn
-              color="blue-darken-1"
-              variant="text"
-              type="submit"
-            >
-              OK
-            </VBtn>
-            <VSpacer />
-          </VCardActions>
-        </VForm>
-      </VCardItem>
-    </VCard>
-  </VDialog>
-  <ReponseDialog
-    :is-dialog-visible="isDialogVisible"
-    :title="title"
-    :message="message"
-    link="/invoice/list"
-    :is-error="resErr"
-    @update:is-dialog-visible="handleDialogVisibility"
-  />
 </template>
 
 <style lang="scss">

@@ -27,13 +27,15 @@
   "Lợi nhuận": "Profit",
   "Giá": "Price",
   "Thống kê": "Statistic",
-  "Thống kê doanh thu": "Revenue statistics",
-  "Thống kê hoá đơn": "Invoice statistics",
+  "Doanh thu theo xe": "Revenue by bus",
+  "Doanh thu theo khách": "Revenue by customer",
+  "Thống kê khuyến mãi": "Promotion statistics",
   "Quản lí dữ liệu": "Data Management",
   "Quản lí giao dịch": "Transaction anagement",
   "Hoá đơn": "Invoice",
   "Code": "Code",
   "Tuyến đường": "Routes",
   "Bến xe": "Station",
-  "Hoá đơn trả": "Return Invoice"
+  "Hoá đơn trả": "Return Invoice",
+  "Thống kê hoá đơn trả": "ReturnInvoice statistics"
 }

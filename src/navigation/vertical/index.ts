@@ -6,13 +6,23 @@ export default [
     icon: { icon: 'tabler-smart-home' },
   },
   {
-    title: 'Thống kê doanh thu',
-    to: { name: 'second-page' },
+    title: 'Doanh thu theo xe',
+    to: { name: 'statistics-revenue' },
     icon: { icon: 'tabler-chart-bar' },
   },
   {
-    title: 'Thống kê hoá đơn',
-    to: { name: 'second-page' },
+    title: 'Doanh thu theo khách',
+    to: { name: 'statistics-revenue-cus' },
+    icon: { icon: 'tabler-chart-bar' },
+  },
+  {
+    title: 'Thống kê khuyến mãi',
+    to: { name: 'statistics-promotion' },
+    icon: { icon: 'tabler-report-analytics' },
+  },
+  {
+    title: 'Thống kê hoá đơn trả',
+    to: { name: 'statistics-invoicereturn' },
     icon: { icon: 'tabler-report-analytics' },
   },
   { heading: 'Quản lí dữ liệu' },

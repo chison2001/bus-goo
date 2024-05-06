@@ -1,5 +1,17 @@
 <script setup lang="ts">
-import CrmEarningReportsYearlyOverview from '@/views/dashboards/crm/CrmEarningReportsYearlyOverview.vue'
+import $api from '@/utils/api'
+
+const res = await $api('/api/report/dashboard', { method: 'GET' })
+
+const { valueReponse } = res.data
+
+function formatCurrency(amount) {
+  return amount ? `${amount.toLocaleString('vi-VN')} VND` : '0 VND'
+}
+
+function formatCount(count) {
+  return count ? count.toLocaleString('vi-VN') : '0'
+}
 
 const statisticsCards = [
   {
@@ -7,32 +19,28 @@ const statisticsCards = [
     color: 'primary',
     title: 'Tổng người dùng',
     subTitle: 'Tháng trước',
-    stat: '1.28k',
-    change: '+2%',
+    stat: formatCount(valueReponse.countUser),
   },
   {
     icon: 'tabler-packages',
     color: 'warning',
     title: 'Tổng hoá đơn',
     subTitle: 'Tháng trước',
-    stat: '1.2k',
-    change: '-10%',
+    stat: formatCount(valueReponse.countInvoice),
   },
   {
     icon: 'tabler-chart-bar',
     color: 'info',
     title: 'Tổng doanh thu',
     subTitle: 'Tháng trước',
-    stat: '200.000.000vnd',
-    change: '+5.2%',
+    stat: formatCurrency(valueReponse.income),
   },
   {
     icon: 'tabler-clock',
     color: 'error',
     title: 'Tổng hoá đơn chờ xử lí',
     subTitle: 'Tháng trước',
-    stat: '200',
-    change: '+2.2%',
+    stat: formatCount(valueReponse.countOrderInprogress),
   },
 ]
 </script>
@@ -61,28 +69,14 @@ const statisticsCards = [
           <h5 class="text-h4 mt-5">
             {{ $t(card.title) }}
           </h5>
-          <p class="text-md text-disabled my-1 mb-0">
+          <p class="text-md  my-1 mb-0">
             {{ $t(card.subTitle) }}
           </p>
           <p class="mb-5">
             {{ card.stat }}
           </p>
-          <VChip
-            color="disabled"
-            label
-          >
-            {{ card.change }}
-          </VChip>
         </VCardText>
       </VCard>
-    </VCol>
-
-    <!-- 👉 Earning Reports -->
-    <VCol
-      cols="12"
-      md="12"
-    >
-      <CrmEarningReportsYearlyOverview />
     </VCol>
   </VRow>
 </template>

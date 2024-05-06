@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Level, RenderAs } from 'qrcode.vue'
 import QrcodeVue from 'qrcode.vue'
+import { VForm } from 'vuetify/components/VForm'
 import $api from '@/utils/api'
 import { VNodeRenderer } from '@layouts/components/VNodeRenderer'
 import { themeConfig } from '@themeConfig'
@@ -8,6 +9,18 @@ import { themeConfig } from '@themeConfig'
 const val = ref('qrcode')
 const level = ref<Level>('M')
 const renderAs = ref<RenderAs>('svg')
+let cancelID = -1
+const dialogCancelInvoice = ref(false)
+const isFormValid = ref(false)
+const reason = ref()
+const refForm = ref<VForm>()
+const isDialogVisible = ref(false)
+const title = ref('')
+const message = ref('')
+const resErr = ref(false)
+function handleDialogVisibility(value: boolean) {
+  isDialogVisible.value = value
+}
 interface OrderDetail {
   orderDetailId: null | number
   code: string
@@ -47,6 +60,48 @@ function formatDateString(dateString: string) {
   const minutes = date.getMinutes().toString().padStart(2, '0')
 
   return `${hours}:${minutes} ${day}-${month}-${year}`
+}
+function showCancelInvoice(id: number) {
+  cancelID = id
+  dialogCancelInvoice.value = true
+}
+
+const deleteInvoice = async (id: number) => {
+  dialogCancelInvoice.value = false
+
+  const response = await $api('/api/invoice/return', {
+    method: 'POST',
+    data: {
+      invoiceId: id,
+      reason: reason.value,
+    },
+  })
+
+  const data = response.data
+  if (data.respType === 200) {
+    isDialogVisible.value = true
+    title.value = 'Thông báo'
+    message.value = 'Huỷ hoá đơn thành công'
+    resErr.value = false
+  }
+  else {
+    isDialogVisible.value = true
+    title.value = 'Đã xảy ra lỗi'
+    message.value = data.responseMsg
+    resErr.value = true
+  }
+}
+
+const onSubmit = () => {
+  refForm.value?.validate().then(({ valid }) => {
+    if (valid) {
+      deleteInvoice(cancelID)
+      nextTick(() => {
+        refForm.value?.reset()
+        refForm.value?.resetValidation()
+      })
+    }
+  })
 }
 </script>
 
@@ -286,6 +341,16 @@ function formatDateString(dateString: string) {
             <VBtn
               block
               variant="tonal"
+              class="mb-2"
+              color="error"
+              @click="showCancelInvoice(Number(route.params.id))"
+            >
+              Huỷ hoá đơn
+            </VBtn>
+
+            <VBtn
+              block
+              variant="tonal"
               color="secondary"
               class="mb-2"
               @click="router.push('/invoice/list')"
@@ -297,6 +362,62 @@ function formatDateString(dateString: string) {
       </VCol>
     </VRow>
   </section>
+  <VDialog
+    v-model="dialogCancelInvoice"
+    max-width="500px"
+  >
+    <VCard>
+      <VCardTitle class="text-h5">
+        Nhập lí do huỷ hoá đơn
+      </VCardTitle>
+      <VCardItem>
+        <VForm
+          ref="refForm"
+          v-model="isFormValid"
+          @submit.prevent="onSubmit"
+        >
+          <VRow>
+            <VCol
+              cols="12"
+              md="12"
+            >
+              <AppTextarea
+                v-model="reason"
+                label="Lí do huỷ hoá đơn"
+                :rules="[requiredValidator]"
+              />
+            </VCol>
+          </VRow>
+          <VCardActions>
+            <VSpacer />
+            <VBtn
+              color="blue-darken-1"
+              variant="text"
+              @click="dialogCancelInvoice = false"
+            >
+              Cancel
+            </VBtn>
+            <VBtn
+              color="blue-darken-1"
+              variant="text"
+              type="submit"
+            >
+              OK
+            </VBtn>
+            <VSpacer />
+          </VCardActions>
+        </VForm>
+      </VCardItem>
+    </VCard>
+  </VDialog>
+  <ReponseDialog
+    :is-dialog-visible="isDialogVisible"
+    :title="title"
+    :message="message"
+    link="/invoice/list"
+    :is-error="resErr"
+    @update:is-dialog-visible="handleDialogVisibility"
+  />
 </template>
 
 <style lang="scss">
